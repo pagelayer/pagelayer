@@ -1,12 +1,4 @@
-=== Page Builder: PageLayer - Drag and Drop website builder for WordPress ===
-Contributors: pagelayer
-Tags: page builder, editor, landing page, drag-and-drop, pagelayer, softaculous, visual editor, wysiwyg, design, maintenance mode, coming soon, under construction, website builder, landing page builder, front-end builder
-Requires at least: 4.7
-Tested up to: 5.2
-Requires PHP: 5.2.4
-Stable tag: 0.9.7
-License: LGPL v2.1
-License URI: http://www.gnu.org/licenses/lgpl-2.1.html
+#PageLayer - Drag and Drop website builder for WordPress
 
 The most advanced frontend drag & drop page builder. PageLayer is a light weight but extremely powerful Website Builder. With PageLayer you can create great looking websites much faster. Works with any theme and any page.
 
