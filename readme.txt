@@ -1,4 +1,4 @@
-=== Page Builder: PageLayer - Drag and Drop website builder for WordPress ===
+=== Page Builder: PageLayer - Drag and Drop website builder ===
 Contributors: pagelayer
 Tags: page builder, editor, landing page, drag-and-drop, pagelayer, softaculous, visual editor, wysiwyg, design, maintenance mode, coming soon, under construction, website builder, landing page builder, front-end builder
 Requires at least: 4.7

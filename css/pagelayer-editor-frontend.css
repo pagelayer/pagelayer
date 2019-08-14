@@ -1,0 +1,235 @@
+
+/* Add an element box */
+.pagelayer-add-ele{
+width:100%;
+display:block;
+vertical-align:middle;
+text-align:center;
+background:#dfdfdf;
+}
+
+.pagelayer-empty-col{
+display:table-cell;
+}
+
+/*.pagelayer-col{
+min-height:100px;
+}*/
+
+.pagelayer-row{
+min-height:20px;
+}
+
+/* Since we have a wrap, we set the cols to the wrap. Hence we need to make the width of the real thing to 100% */
+.pagelayer-ele-wrap>.pagelayer-col{
+width:100%;
+}
+
+.pagelayer-ele-wrap{
+position: relative;
+}
+
+.pagelayer-ele-overlay{
+position: absolute;
+width: 100%;
+height: 100%;
+right: 0px;
+top: 0px;
+z-index: 10;
+pointer-events:none;
+}
+
+.pagelayer-ele-hover, .pagelayer-drag-ele-hover{/* Both classes are same. but its just that during drag, we use the later */
+outline:1px solid blue;
+}
+
+.pagelayer-active{
+outline:1px solid blue;
+}
+
+.pagelayer-row-hover{
+outline-color:green;
+outline-width:1px;
+}
+
+.pagelayer-col-hover{
+outline-color:blue;
+outline-width:1px;
+}
+
+.pagelayer-ele-option,
+.pagelayer-row-option,
+.pagelayer-col-option{
+position: absolute;
+top:0px;
+right:0px;
+z-index: 20;
+padding:0px;
+margin:0px;
+line-height: 0;
+pointer-events:auto;
+}
+
+.pagelayer-eoi{
+display:inline-block !important;
+font-size:13px !important;
+padding:4px !important;
+background: #3e8ef7;
+color:#fff ;
+}
+
+.pagelayer-eoi:hover{
+background: #268ab7;
+cursor: pointer;
+}
+
+.pagelayer-row-option{
+top:-21px;
+left:calc(50% - 63px/2);
+z-index: 30;
+}
+
+.pagelayer-row-option .pagelayer-eoi{
+background: #268ab7;
+}
+
+.pagelayer-row-option .pagelayer-eoi:hover,
+.pagelayer-col-option .pagelayer-eoi:hover{
+background: #3e8ef7;
+}
+
+.pagelayer-col-option{
+top:0px;
+left:0px;
+z-index: 30;
+width: 21px;
+}
+
+.pagelayer-col-option .pagelayer-eoi{
+background: #555;
+}
+
+.pagelayer-splash{
+background-image:url(../images/splash.png);
+height:30px;
+background-position: center center;
+background-repeat: no-repeat;
+background-size: cover;
+}
+
+.pagelayer-space-holder{
+background:url(../images/space.png);
+background-repeat:repeat;
+}
+
+.pagelayer-anchor{
+background-image:url(../images/anchor.png);
+height:30px;
+background-position: center center;
+background-repeat: no-repeat;
+background-size: cover;
+}
+
+
+/* Right Click */
+.pagelayer-right-click-options{
+position:absolute;
+background: #fff;
+border-radius: 2px;
+box-shadow: 0 0 5px rgba(0,0,0,0.1);
+z-index: 10;
+border: 1px solid rgba(0,0,0,0.1);
+}
+
+.pagelayer-right-click-options ul{
+list-style: none;
+margin: 0;
+padding: 0;
+}
+
+.pagelayer-right-click-options a{
+color: #636262;
+}
+
+.pagelayer-right-click-options li{
+border-bottom: 1px solid #dfdfdf;
+padding: 5px 10px;
+font-size: 14px;
+font-family: Opensans, arial;
+}
+
+@media (min-width: 769px){
+	.pagelayer-hide-desktop{
+		display:initial;
+		filter:blur(3px);
+	}
+}
+
+@media (max-width: 768px) and (min-width: 361px){
+	.pagelayer-hide-tablet{
+		display:initial;
+		filter:blur(3px);
+	}
+}
+
+@media (max-width: 360px){
+	.pagelayer-hide-mobile{
+		display:initial;
+		filter:blur(3px);
+	}
+}
+
+/* Pagelayer add section area */
+
+.pagelayer-add-widget-area{
+padding: 10px;
+width:100%;
+text-align: center;
+border: 2px #3e8ef7;
+border-style: dashed;
+position:relative;
+}
+
+.pagelayer-add-widget-area .fa.fa-plus-circle{
+font-size: 26px;
+color: #3e8ef7;
+}
+
+.pagelayer-add-widget-area p{
+margin: 0px !important;
+}
+
+.pagelayer-add-widget-drag{
+border-color: #111111;
+background: #c4d2de;
+}
+
+/* Pagelayer Drag stuff */
+
+.pagelayer-is-dragging{
+opacity: 0.33;
+transition:0.1s;
+}
+
+.pagelayer-drag-show{
+position:absolute;
+top:0px;
+left:0px;
+display:none;
+background: blue;
+z-index:1000;
+}
+
+.pagelayer-drag-prospect{
+height:1px;
+background: blue;
+z-index: 1000;
+}
+
+.pagelayer-drag-prospect-col{
+position: absolute;
+top: 0px;
+width: 1px;
+height: 100% !important;
+}
+

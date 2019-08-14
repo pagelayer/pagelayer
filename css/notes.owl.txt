@@ -1,0 +1,2 @@
+1) Rename all CSS .owl to .pagelayer-owl
+2) Rename owlCarousel to pagelayerowlCarousel in JS

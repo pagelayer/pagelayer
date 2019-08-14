@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none">
+	<path class="pagelayer-shape-fill" style="opacity:0.3" d="M0,95V100h1000V20L0,95z"/>
+	<path class="pagelayer-shape-fill" style="opacity:0.3" d="M0,95V100h1000V50L0,95z"/>
+	<path class="pagelayer-shape-fill" d="M0,95V100h1000V80L0,95z"/>
+</svg>

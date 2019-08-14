@@ -1,0 +1,29 @@
+.pagelayer-tab-panel{
+padding:20px;
+display:none;
+}
+
+.pagelayer-setting-form th, .pagelayer-setting-form td{
+padding:20px 20px 20px 0px ;
+text-align:left;
+}
+
+.pagelayer-acc-wrapper{
+width:90%;
+}
+
+.pagelayer-acc-wrapper .pagelayer-acc-tab{
+width:100%;
+float:unset;
+display:block;
+padding:10px;
+}
+
+.pagelayer-acc-wrapper .pagelayer-acc-panel{
+padding:0px 20px;
+display:none;
+}
+
+.pagelayer-setting-form td .pagelayer-app-id{
+width:350px;
+}
