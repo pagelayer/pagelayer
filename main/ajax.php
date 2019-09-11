@@ -709,18 +709,6 @@ function pagelayer_get_pages_list(){
 	wp_die();	
 }
 
-// Posts Slider
-add_action('wp_ajax_pagelayer_posts_slider_data', 'pagelayer_posts_slider_data');
-function pagelayer_posts_slider_data(){
-	
-	// Some AJAX security
-	check_ajax_referer('pagelayer_ajax', 'pagelayer_nonce');
-
-	// Load shortcodes
-	echo pagelayer_posts_slider($_POST);
-	wp_die();
-}
-
 // Get the data for template
 add_action('wp_ajax_pagelayer_search_ids', 'pagelayer_search_ids');
 function pagelayer_search_ids() {
@@ -1031,7 +1019,7 @@ function pagelayer_product_archives(){
 	$type = 'pagelayer_current_query';
 	
 	// Set the current query 
-	add_action( 'woocommerce_shortcode_products_query', 'pagelayer_shortcode_current_query_query', 10, 10);
+	add_action( 'woocommerce_shortcode_products_query', 'pagelayer_shortcode_current_query', 10, 10);
 	
 	// If product not found
 	add_action( "woocommerce_shortcode_{$type}_loop_no_results", function ($attributes) use ($no_found){
@@ -1089,7 +1077,7 @@ function pagelayer_products_ajax(){
 		$type = 'pagelayer_current_query';
 		
 		// Set the current query
-		add_action( 'woocommerce_shortcode_products_query', 'pagelayer_shortcode_current_query_query', 10, 10);
+		add_action( 'woocommerce_shortcode_products_query', 'pagelayer_shortcode_current_query', 10, 10);
 		
 		// If product not found
 		add_action( "woocommerce_shortcode_{$type}_loop_no_results", function ($attributes) use ($no_found){
@@ -1220,9 +1208,9 @@ function pagelayer_save_settings(){
 		$ret = wp_update_post($post);
 
 		if (is_wp_error($ret)) {
-			$msg['error'] =  __pl('post_update_err');
+			$msg['error'] =  __pl('post_setting_update_err');
 		}else{
-			$msg['success'] =  __pl('post_update_success');
+			$msg['success'] =  __pl('post_setting_update_success');
 		}
 	}
 

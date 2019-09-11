@@ -48,7 +48,7 @@ class PageLayer_LiveEditor{
 		add_filter('the_content', array($this, 'the_content'));
 
 		// Enqueue our Editor's JS
-		wp_register_script('pagelayer-editor', PAGELAYER_JS.'/givejs.php?give=pagelayer-editor.js,widgets.js,'.(defined('PAGELAYER_PREMIUM') ? 'premium.js,' : '').'properties.js,base64.js,slimscroll.js,vanilla-picker.min.js,trumbowyg.js,trumbowyg.fontfamily.js,trumbowyg-pagelayer.js,pen.js', array('jquery'), PAGELAYER_VERSION);
+		wp_register_script('pagelayer-editor', PAGELAYER_JS.'/givejs.php?give=pagelayer-editor.js,widgets.js,'.(defined('PAGELAYER_PREMIUM') ? 'premium.js,' : '').'properties.js,base64.js,slimscroll.js,vanilla-picker.min.js,trumbowyg.js,trumbowyg.fontfamily.js,trumbowyg-pagelayer.js,trumbowyg.fontsize.min.js,pen.js', array('jquery'), PAGELAYER_VERSION);
 		wp_enqueue_script('pagelayer-editor');
 
 		// Enqueue the Editor's CSS
@@ -86,7 +86,7 @@ class PageLayer_LiveEditor{
 	// Header function to add certain things
 	function wp_head(){
 
-		global $pagelayer, $post;
+		global $pagelayer, $post, $wp_query;
 		
 		$returnURL = (!is_page($post->ID) ? admin_url('edit.php') : admin_url('edit.php?post_type=page') );
 		
@@ -110,6 +110,7 @@ pagelayer_site_logo = '.json_encode(pagelayer_site_logo()).';
 pagelayer_postTitle = "'. ( isset( $post->post_title ) ? $post->post_title : '' ) .'";
 pagelayer_support_FI = "'. ( current_theme_supports('post-thumbnails') )  .'";	
 pagelayer_editable = ".'.(!empty($pagelayer->template_editor) ? $pagelayer->template_editor : 'entry-content').'";
+pagelayer_wp_query = '. json_encode($wp_query->query_vars) .';
 </script>';
 	}
 

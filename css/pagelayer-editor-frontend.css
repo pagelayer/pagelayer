@@ -5,7 +5,19 @@ width:100%;
 display:block;
 vertical-align:middle;
 text-align:center;
-background:#dfdfdf;
+border:1px dashed #4a4949;
+min-height:60px;
+padding:5px;
+}
+
+.pagelayer-add-ele .fa{
+font-size:15px;
+color:#4a4949;
+}
+
+.pagelayer-add-ele span,
+.pagelayer-add-widget-area p{
+font-family: "Open Sans", Arial,Helvetica,sans-serif;
 }
 
 .pagelayer-empty-col{
@@ -40,20 +52,20 @@ pointer-events:none;
 }
 
 .pagelayer-ele-hover, .pagelayer-drag-ele-hover{/* Both classes are same. but its just that during drag, we use the later */
-outline:1px solid blue;
+outline:1px solid #277CF9;
 }
 
 .pagelayer-active{
-outline:1px solid blue;
+outline:1px solid #7460EE;
 }
 
 .pagelayer-row-hover{
-outline-color:green;
+outline-color:#41A85F;
 outline-width:1px;
 }
 
 .pagelayer-col-hover{
-outline-color:blue;
+outline-color:#905101;
 outline-width:1px;
 }
 
@@ -74,12 +86,12 @@ pointer-events:auto;
 display:inline-block !important;
 font-size:13px !important;
 padding:4px !important;
-background: #3e8ef7;
+background:#277CF9;
 color:#fff ;
 }
 
 .pagelayer-eoi:hover{
-background: #268ab7;
+background:#1c59b3;
 cursor: pointer;
 }
 
@@ -90,12 +102,19 @@ z-index: 30;
 }
 
 .pagelayer-row-option .pagelayer-eoi{
-background: #268ab7;
+background:#41A85F;
 }
 
-.pagelayer-row-option .pagelayer-eoi:hover,
+.pagelayer-row-option .pagelayer-eoi:hover{
+background:#27713d;
+}
+
+.pagelayer-col-option .pagelayer-eoi{
+background:#905101;
+}
+
 .pagelayer-col-option .pagelayer-eoi:hover{
-background: #3e8ef7;
+background:#5a3401;
 }
 
 .pagelayer-col-option{
@@ -103,10 +122,6 @@ top:0px;
 left:0px;
 z-index: 30;
 width: 21px;
-}
-
-.pagelayer-col-option .pagelayer-eoi{
-background: #555;
 }
 
 .pagelayer-splash{
@@ -134,11 +149,12 @@ background-size: cover;
 /* Right Click */
 .pagelayer-right-click-options{
 position:absolute;
-background: #fff;
+background:#e9eaea;
 border-radius: 2px;
 box-shadow: 0 0 5px rgba(0,0,0,0.1);
 z-index: 10;
-border: 1px solid rgba(0,0,0,0.1);
+border: 1px solid rgba(0,0,0,0.2);
+width:135px;
 }
 
 .pagelayer-right-click-options ul{
@@ -148,14 +164,27 @@ padding: 0;
 }
 
 .pagelayer-right-click-options a{
-color: #636262;
+color: #4a4949;
+padding: 5px 10px;
+width: 100%;
+display: block;
+transition: all 0.2s;
+}
+
+.pagelayer-right-click-options a:hover{
+background: #449D44;
+color:#fff;
 }
 
 .pagelayer-right-click-options li{
-border-bottom: 1px solid #dfdfdf;
-padding: 5px 10px;
-font-size: 14px;
+border-bottom: 1px solid rgb(236, 236, 236);
+font-size: 12px;
 font-family: Opensans, arial;
+cursor:pointer;
+}
+
+.pagelayer-right-click-options .pagelayer-right-delete:hover {
+background:#EF4D4D;
 }
 
 @media (min-width: 769px){
@@ -188,6 +217,7 @@ text-align: center;
 border: 2px #3e8ef7;
 border-style: dashed;
 position:relative;
+cursor: pointer;
 }
 
 .pagelayer-add-widget-area .fa.fa-plus-circle{
@@ -222,7 +252,7 @@ z-index:1000;
 
 .pagelayer-drag-prospect{
 height:1px;
-background: blue;
+background:#00BCD4;
 z-index: 1000;
 }
 

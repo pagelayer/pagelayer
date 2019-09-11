@@ -1404,7 +1404,7 @@ function pagelayer_json_output(&$done){
 }
 
 // Get the current query for render the product
-function pagelayer_shortcode_current_query_query($query_args, $atts, $type){
+function pagelayer_shortcode_current_query($query_args, $atts, $type){
 	global $wp_query;
 	
 	if($type == 'pagelayer_current_query'){

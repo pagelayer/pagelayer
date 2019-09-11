@@ -4,7 +4,7 @@ Tags: page builder, editor, landing page, drag-and-drop, pagelayer, softaculous,
 Requires at least: 4.7
 Tested up to: 5.2
 Requires PHP: 5.2.4
-Stable tag: 0.9.7
+Stable tag: 0.9.9
 License: LGPL v2.1
 License URI: http://www.gnu.org/licenses/lgpl-2.1.html
 
@@ -112,6 +112,26 @@ Do you have questions related to PageLayer ? Use the following links :
 6. **Sections** Pagelayer has a nice grid systems with rows and columns. You can create sections so much easily with Pagelayer
 
 == Changelog ==
+
+= 0.9.9 (September 10, 2019) =
+* [Feature] Added inline editing so you can now edit text / headers in the editor itself. 
+* [Task] Editor Font Size has been introduced.
+* [Task] The cursor for add widget area has been set to pointer.
+* [Bug Fix] In the Pagelayer Editor the title of the page was not set. This is fixed.
+* [Bug Fix] The overflow given to a column was extending beyond the column. This is fixed.
+* [Bug Fix] The active accordion tab was not shown by default. This is fixed.
+* [Bug Fix] The correct screen mode was not set correctly in the beginning. This is fixed.
+* [Bug Fix] The gradient color in the properties tab was not shown correctly the second time of editing. This is fixed.
+* [Bug Fix] In image box, the spacing caused the image to go outside its holder. This is fixed.
+
+= 0.9.8 (August 20, 2019) =
+* [Task] In the editor, improved the widget border colors for better user experience
+* [Task] Improved the right click options UI and added icons
+* [Task] The widget left bar has been improved
+* [Task] Improved the search box UI in the left bar
+* [Task] The widget properties UI has been improved
+* [Task] The editor bottom bar UI has been improved
+* [Bug Fix] Testimonial widget was not working. This is fixed.
 
 = 0.9.7 (August 13, 2019) =
 * [Feature] Introducing template feature which allows theme developers to make their themes with Pagelayer

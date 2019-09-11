@@ -20,6 +20,9 @@ var pagelayer_history_obj = {}, pagelayer_revision_obj = {};
 // Lets start
 jQuery(document).ready(function(){
 	
+	// Set the title of the parent window
+	pagelayer.$$('head').append(pagelayer.$('title')[0].outerHTML);
+	
 	pagelayer.blank_img = pagelayer_url+'/images/default-image.png';
 
 	pagelayer_shortcodes['pl_inner_row'] = JSON.parse(JSON.stringify(pagelayer_shortcodes['pl_row']));
@@ -517,6 +520,27 @@ function pagelayer_setup_drag(){
 		pagelayer.drag_is_new = true;
 		
 	});
+	
+	// Handle editable content by removing drag
+	var onmousedown = function(e){
+		
+		var tEle = jQuery(e.originalEvent.explicitOriginalTarget);
+		
+		if(tEle.closest('[pagelayer-editable]').length > 0){
+			//console.log('Is Editable MouseDown');			
+			tEle.parents('[draggable]').attr('draggable', 'false');
+		}
+	
+	}
+	
+	// Handle editable content by adding drag that was removed
+	var onmouseup = function(e){
+		jQuery(document).find('[draggable=false]').attr('draggable', 'true');
+	}
+	
+	// Handle editable contents by temprarily removing drag
+	jQuery(document).on('mousedown', onmousedown);
+	jQuery(document).on('mouseup', onmouseup);
 
 };
 
@@ -537,9 +561,9 @@ function pagelayer_empty_col(selector){
 		// Column is becoming blank, so show add ele
 		if(jEle.children().length < 1){
 			//from.addClass('pagelayer-empty-col');
-			jEle.append('<div class="pagelayer-add-ele pagelayer-ele-wrap"><i class="fa fa-plus"><br>Empty column please add something</div>');			
-			var h = jEle.parent().parent().children('.pagelayer-ele-overlay').height();
-			jEle.children('.pagelayer-add-ele').height(h);
+			jEle.append('<div class="pagelayer-add-ele pagelayer-ele-wrap"><i class="fa fa-plus"><br /><span>Empty column please Drag Widgets</span></i></div>');			
+			//var h = jEle.parent().parent().children('.pagelayer-ele-overlay').height();
+			//jEle.children('.pagelayer-add-ele').height(h);
 			
 		// Any add ele sign with non-empty columns here ?
 		}else if(jEle.children('.pagelayer-add-ele').length > 0){
@@ -741,6 +765,7 @@ function pagelayer_element_clicked(selector, e){
 	
 	var jEle = jQuery(selector);
 	e = e || false;
+	//console.log(e);	
 	
 	// You must be a element atleast
 	if(!jEle.hasClass('pagelayer-ele')){
@@ -755,16 +780,16 @@ function pagelayer_element_clicked(selector, e){
 		jEle = pagelayer_ele_by_id(pId);	
 	}
 	
+	// Make the editable fields active	
+	//pagelayer_clear_editable();// First clear
+	jEle.find('[pagelayer-editable]').each(function (){
+		pagelayer_make_editable(jQuery(this), e);
+	});
+	
 	// Lets not rebuild everything to make it faster
 	if(pagelayer_is_active(jEle)){
 		return false;
 	}
-	
-	// Make the editable fields active	
-	pagelayer_clear_editable();// First clear
-	jEle.find('[pagelayer-editable]').each(function (){
-		pagelayer_make_editable(jQuery(this), e);
-	});
 	
 	// Set this as the active element
 	pagelayer_set_active(jEle);
@@ -974,10 +999,10 @@ function pagelayer_right_click(){
 	var html = '<div class="pagelayer-right-click-options" style="display:none;">'+
 		'<ul>'+
 			'<li><a class="pagelayer-right-edit">Edit</a></li>'+
-			'<li><a class="pagelayer-right-duplicate">Duplicate</a></li>'+
-			'<li><a class="pagelayer-right-copy">Copy</a></li>'+
-			'<li><a class="pagelayer-right-paste">Paste</a></li>'+
-			'<li><a class="pagelayer-right-delete">Delete</a></li>'+
+			'<li><a class="pagelayer-right-duplicate"><i class="fa fa-clone" /> Duplicate</a></li>'+
+			'<li><a class="pagelayer-right-copy"><i class="fa fa-files-o" /> Copy</a></li>'+
+			'<li><a class="pagelayer-right-paste"><i class="fa fa-clipboard" /> Paste</a></li>'+
+			'<li><a class="pagelayer-right-delete"><i class="fa fa-trash-o" /> Delete</a></li>'+
 		'</ul>'+
 	'</div>';
 	
@@ -1002,7 +1027,7 @@ function pagelayer_right_click(){
 		var id = pagelayer_assign_id(jEle);		
 		var tag = pagelayer_tag(jEle);
 		
-		$contextMenu.find('.pagelayer-right-edit').attr('onclick', 'pagelayer_edit_element("[pagelayer-id='+id+']")').html('Edit '+pagelayer_shortcodes[tag]['name']);
+		$contextMenu.find('.pagelayer-right-edit').attr('onclick', 'pagelayer_edit_element("[pagelayer-id='+id+']")').html('<i class="fa fa-pencil-square-o" /> Edit '+pagelayer_shortcodes[tag]['name']);
 		$contextMenu.find('.pagelayer-right-duplicate').attr('onclick', 'pagelayer_copy_element("[pagelayer-id='+id+']")');
 		$contextMenu.find('.pagelayer-right-copy').attr('onclick', 'pagelayer_copy_select("[pagelayer-id='+id+']")');
 		$contextMenu.find('.pagelayer-right-paste').attr('onclick', 'pagelayer_paste_element("[pagelayer-id='+id+']")');
@@ -1671,7 +1696,9 @@ function pagelayer_sc_render(jEle){
 		//return false;
 	}
 	
-	// Handle the CSS part	
+  //console.log('Rendering');
+	
+  // Handle the CSS part
 	// Get the id, tag, atts, data, etc
 	var el = pagelayer_data(jEle, true);
 	var all_props = pagelayer_shortcodes[el.tag];
@@ -2307,7 +2334,7 @@ function pagelayer_leftbar(){
 	'<div class="pagelayer-leftbar-scroll">'+
 		'<div id="pagelayer-shortcodes" class="pagelayer-leftbar-tab pagelayer-shortcodes">'+
 			'<div class="pagelayer-leftbar-search">'+
-				'<input class="pagelayer-search-field" />'+
+				'<i class="fa fa-search" /><input class="pagelayer-search-field" />'+
 			'</div>';
 		
 	for(var x in pagelayer_groups){
@@ -2320,7 +2347,7 @@ function pagelayer_leftbar(){
 			
 			var sc = pagelayer_groups[x][y];
 			
-			if('not_visible' in pagelayer_shortcodes[sc]){
+			if(!(sc in pagelayer_shortcodes) || 'not_visible' in pagelayer_shortcodes[sc]){
 				continue;
 			}
 			
@@ -2421,7 +2448,7 @@ function pagelayer_post_settings(){
 		'<div class="pagelayer-post-settings-fields">'+
 			'<label for="post_title">Post Title</label> '+
 			'<input type="text" name="post_title" value="'+ pagelayer_postTitle +'" id="title" spellcheck="true" autocomplete="off">'+
-			'<button class="pagelayer-post-settings-apply" disabled>Apply</button>'+
+			'<button class="pagelayer-post-settings-apply pagelayer-success-btn" disabled>Apply</button>'+
 		'</div>'+
 	'</div>';
 	
@@ -2941,7 +2968,7 @@ function pagelayer_bottombar(){
 	var holder = pagelayer.$$('.pagelayer-bottombar-holder');
 	var html = '<div class="pagelayer-bottombar">'+
 		'<div class="pagelayer-bottombar-rightbuttons">'+
-			'<button class="pagelayer-update-button">Update</button>'+
+			'<button class="pagelayer-update-button pagelayer-success-btn">Update</button>'+
 			'<button class="pagelayer-close-button">Close</button>'+
 			'<div class="pagelayer-mode-wrapper">'+
 				'<i class="pagelayer-mode-button fa fa-desktop"></i>'+

@@ -206,7 +206,7 @@ border:0px;
 
 /* Pagelayer Top Bar */
 .pagelayer-bottombar-holder{
-background: #f69c55;
+background: #4f4f4f;
 position:relative;
 }
 
@@ -221,19 +221,34 @@ cursor: pointer;
 border-radius: 2px;
 padding: 4px 8px;
 margin: auto 5px;
+outline:none;
 }
 
-.pagelayer-update-button,
-.pagelayer-post-settings-apply{
+.pagelayer-bottombar-rightbuttons .fa{
+color:#fff;
+cursor: pointer;
+}
+
+.pagelayer-success-btn{
 border: #398439 1px solid;
 color: #fff;
 background: #449d44;
 }
 
+.pagelayer-success-btn:hover{
+background: #3a733a;
+border-color: #3a733a;
+}
+
 .pagelayer-close-button{
-border: #CDCDCD 1px solid;
+border: #ef4d4d 1px solid;
 color: #fff;
-background: #CDCDCD;
+background: #ef4d4d;
+}
+
+.pagelayer-close-button:hover{
+background: #c13030;
+border-color: #c13030;
 }
 
 .pagelayer-mode-wrapper{
@@ -242,7 +257,6 @@ text-align:center;
 }
 
 .pagelayer-mode-wrapper i{
-cursor: pointer;
 padding: 8px;
 margin: auto 5px;
 }
@@ -326,7 +340,6 @@ background-color: transparent;
 }
 
 #pagelayer-elpd {
-background-color: #f1f1f1;
 display:none;
 color:#444;
 border: 1px solid #d3d3d3;
@@ -337,7 +350,6 @@ height: calc(100% - 50px) !important;
 }
 
 .pagelayer-elpd-header {
-background-color: #3e8ef7;
 border: none;
 color:#fff;
 }
@@ -367,17 +379,23 @@ border: none;
 
 .pagelayer-elpd-section-rows{
 background-color: #FFF;
+border-top: 1px solid #d3d3d3;
 }
 
 .pagelayer-elpd-section-name{
 margin-top: 10px;
 padding: 11px 10px;
-border-bottom: 1px solid #d3d3d3;
 background-color: #FFF;
 font-size: 12px;
 font-weight: bold;
 color: #666;
 cursor: pointer;
+transition: all 0.3s;
+}
+
+.pagelayer-elpd-section-name:hover,
+.pagelayer-elpd-section-open{
+color:#000000;
 }
 
 .pagelayer-elpd-section-name:not(.pagelayer-elpd-section-open) .fa:before{
@@ -1439,7 +1457,6 @@ display: block;
 text-align:center;
 vertical-align:middle;
 color:#fff;
-background-color: #3e8ef7;
 }
 
 .pagelayer-logo-text{
@@ -1462,19 +1479,40 @@ transform: translateY(-50%);
 .pagelayer-leftbar{
 width:270px !important;
 padding-top:0;
-background: #E3E3E3 !important;
+background-color: #E3E3E3;
 overflow: hidden;
+background: -moz-linear-gradient(224deg, rgba(222,222,222,1) 0%, rgba(191,202,214,1) 100%); /* ff3.6+ */
+background: -webkit-gradient(linear, left bottom, right top, color-stop(0%, rgba(191,202,214,1)), color-stop(100%, rgba(222,222,222,1))); /* safari4+,chrome */
+background: -webkit-linear-gradient(224deg, rgba(222,222,222,1) 0%, rgba(191,202,214,1) 100%); /* safari5.1+,chrome10+ */
+background: -o-linear-gradient(224deg, rgba(222,222,222,1) 0%, rgba(191,202,214,1) 100%); /* opera 11.10+ */
+background: -ms-linear-gradient(224deg, rgba(222,222,222,1) 0%, rgba(191,202,214,1) 100%); /* ie10+ */
+background: linear-gradient(226deg, rgba(222,222,222,1) 0%, rgba(191,202,214,1) 100%); /* w3c */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#BFCAD6', endColorstr='#DEDEDE',GradientType=1 ); /* ie6-9 */
 }
 
 .pagelayer-leftbar-search{
 text-align:center;
-padding: 10px 40px 10px 25px;
+margin: 20px 40px 10px 25px;
+position:relative;
 }
 
 .pagelayer-search-field{
 width:100%;
 line-height:120%;
-padding:2px;
+padding: 5px 5px 5px 30px;
+border-radius: 5px;
+border: none;
+font-size: 14px;
+height:30px;
+}
+
+.pagelayer-leftbar-search .fa{
+position: absolute;
+top: 0;
+height: 30px;
+padding: 0 7px;
+color: #666;
+line-height: 30px;
 }
 
 .pagelayer-shortcodes{
@@ -1505,18 +1543,16 @@ margin: 5px;
 .pagelayer-shortcode-drag, .pagelayer-shortcode-drag:hover{
 width: 100px !important;
 height:67px !important;
-margin-bottom:6px; 
+margin-bottom:12px; 
 margin-left:12px;
 background-color:#FFFFFF;
 border-radius: 4px;
 float: left;
-transition: all 0.3s;
-border: 1px solid #ccc;
+transition: all 0.1s;
 }
 
 .pagelayer-shortcode-drag:hover{
-box-shadow: 2px 2px 2px #c6c6c6;
-border-color: #00A0D2;
+transform: scale(1.06);
 }
 
 .pagelayer-sc{
@@ -1541,7 +1577,7 @@ text-align:center;
 transition:color .1s ease-in 0;
 -webkit-font-smoothing:antialiased;
 -moz-osx-font-smoothing:grayscale; 
-color: #777;
+color: #444;
 transition: all 0.3s;
 }
 
@@ -1570,7 +1606,7 @@ padding:1px;
 
 .pagelayer-shortcode-drag:hover .pagelayer-shortcode:before,
 .pagelayer-shortcode-drag:hover .pagelayer-shortcode-text{
-	color: #00A0D2;
+color: #00A0D2;
 }
 
 /* Pagelayer Editor Icons */
@@ -1694,6 +1730,12 @@ background: inherit;
 border: 1px solid #FFF;
 box-shadow: #000 0 0 2px;
 z-index: 10;
+}
+
+.trumbowyg-dropdown-fontsize,
+.trumbowyg-dropdown-fontfamily{
+height: 200px;
+overflow: auto;
 }
 
 /* Trumbowyg color widget style end */

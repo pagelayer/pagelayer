@@ -328,7 +328,7 @@ function pagelayer_pl_accordion(jEle){
 function pagelayer_pl_collapse(jEle){
 	
 	var holder = jEle.find('.pagelayer-collapse-holder');
-	var tabs = jEle.find('.pagelayer-accordion-tabs');
+	var tabs = jEle.find('.pagelayer-accordion_item');
 		
 	if(tabs.length < 1){
 		return false;
@@ -337,10 +337,10 @@ function pagelayer_pl_collapse(jEle){
 	var setup = tabs.attr('pagelayer-setup');
 	var icon = 'fa fa-'+holder.attr('data-icon');
 	var active_icon = 'fa fa-'+holder.attr('data-active_icon');
-	var activeTabs = jEle.find('.pagelayer-accordion-tabs.active');
+	var activeTabs = jEle.find('.pagelayer-accordion_item.active');
 
 	tabs.find('span i').attr('class', icon);
-	jQuery(activeTabs).addClass('active').next().show('slow');
+	jQuery(activeTabs).addClass('active').children('.pagelayer-accordion-panel').show('slow');
 	jQuery(activeTabs).find('span i').attr('class', active_icon);
 		
 	// Already setup ?
@@ -353,12 +353,12 @@ function pagelayer_pl_collapse(jEle){
 		var currentTab = jQuery(this);
 		
 		if(currentTab.hasClass('active')){
-			currentTab.removeClass('active').next().hide('slow');;
+			currentTab.removeClass('active').children('.pagelayer-accordion-panel').hide('slow');;
 			currentTab.find('span i').attr('class', icon);
 			return true;
 		}
 			
-		currentTab.addClass('active').next().show('slow');
+		currentTab.addClass('active').children('.pagelayer-accordion-panel').show('slow');
 		currentTab.find('span i').attr('class', active_icon);
 		
 	});

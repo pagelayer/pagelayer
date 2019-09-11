@@ -676,6 +676,7 @@ function _pagelayer_set_atts(row, val, no_default){
 			pagelayer_elpd_open(jEle);
 		}
 	}
+	//console.trace();console.log('Setting Attr');
 	
 	// Render
 	pagelayer_sc_render(jEle);
@@ -703,11 +704,12 @@ function pagelayer_elp_label(row, prop){
 	
 	// Do we have screen ?
 	if('screen' in prop){
+		var mode = pagelayer_get_screen_mode();
 		var screen = '<div class="pagelayer-elp-screen">'+
 			'<i class="fa fa-desktop" />'+
 			'<i class="fa fa-tablet" />'+
 			'<i class="fa fa-mobile" />'+
-			'<i class="pagelayer-prop-screen fa fa-desktop" />'+
+			'<i class="pagelayer-prop-screen fa fa-'+mode+'" />'+
 		'</div>';
 		label.append(screen);
 		
@@ -922,7 +924,7 @@ function pagelayer_elp_multiselect(row, prop){
 	
 	row.find('.pagelayer-elp-multiselect-option').on('click', function(){
 		
-		var sVal = jQuery(this).data('val');
+		var sVal = jQuery(this).attr('data-val');
 		
 		if(jQuery.inArray(sVal,selection) == -1){
 			selection.push(sVal);
@@ -1032,12 +1034,6 @@ function pagelayer_elp_image(row, prop){
 	var tmp = prop.c['name']+'-url';
 	var def = pagelayer.blank_img;
 	var src = (tmp in prop.el.tmp) ? prop.el.tmp[tmp] : def;
-	
-	// Set temp image
-	if(!(tmp in prop.el.tmp)){
-		_pagelayer_set_tmp_atts(row, 'url', def);
-		_pagelayer_set_atts(row, def);
-	}
 	
 	// Do we have a URL set ?
 	style = 'style="background-image:url(\''+src+'\')"';
@@ -1530,9 +1526,10 @@ function pagelayer_elp_editor(row, prop){
 		autogrow: false,
 		btns:[
 			['viewHTML'],
-			['undo', 'redo'], // Only supported in Blink browsers
-			['formatting'],
 			['fontfamily'],
+			['formatting'],
+			['undo', 'redo'], // Only supported in Blink browsers
+			['fontsize'],
 			['foreColor', 'backColor',],
 			['strong', 'em', 'del'],
 			['superscript', 'subscript'],
@@ -1544,6 +1541,11 @@ function pagelayer_elp_editor(row, prop){
 			['removeformat'],
 			['fullscreen']
 		],
+		plugins: {
+			fontsize: {
+				sizeList: ['12px','13px','14px','15px','16px','17px','18px','19px','20px','21px','22px','23px','24px','25px',]
+			}
+		},
 		imageWidthModalEdit: true,
 		
 	// Handle the changes made in the editor
@@ -1602,7 +1604,7 @@ function pagelayer_make_editable(jEle, e){
 	
 	// Is it already setup ?
 	if(jEle.hasClass('pagelayer-pen')){
-		//console.log('HERE');
+		//console.log('Already Penned');
 		return true;
 	}
 	
@@ -2229,6 +2231,7 @@ function pagelayer_elp_gradient(row, prop){
 	var picker1 = new Picker({
 		parent : row.find('.pagelayer-elp-gradient-color1')[0],
 		popup : 'left',
+		color : val[1],
 		doc: window.parent.document
 	});
 	
@@ -2242,6 +2245,7 @@ function pagelayer_elp_gradient(row, prop){
 	var picker2 = new Picker({
 		parent : row.find('.pagelayer-elp-gradient-color2')[0],
 		popup : 'left',
+		color : val[3],
 		doc: window.parent.document
 	});
 	
@@ -2255,6 +2259,7 @@ function pagelayer_elp_gradient(row, prop){
 	var picker3 = new Picker({
 		parent : row.find('.pagelayer-elp-gradient-color3')[0],
 		popup : 'left',
+		color : val[5],
 		doc: window.parent.document
 	});
 	

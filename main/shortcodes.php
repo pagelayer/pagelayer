@@ -4353,7 +4353,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 			'service_image_spacing' => array(
 				'type' => 'padding',
 				'label' => __pl('service_image_spacing'),
-				'css' => ['{{element}} .pagelayer-service-image img' => 'margin-top:{{val[0]}}px; margin-right:{{val[1]}}px; margin-bottom:{{val[2]}}px; margin-left:{{val[3]}}px;'],
+				'css' => ['{{element}} .pagelayer-service-image img' => 'padding-top:{{val[0]}}px; padding-right:{{val[1]}}px; padding-bottom:{{val[2]}}px; padding-left:{{val[3]}}px;'],
 			),
 			'img_bor_state' => array(
 				'type' => 'radio',
@@ -4518,14 +4518,12 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 			'heading_color_hover' => array(
 				'type' => 'color',
 				'label' => __pl('service_heading_color'),
-				'default' => '#3e8ef7',
 				'css' => ['{{element}}:hover .pagelayer-service-heading' => 'color:{{val}}'],
 				'show' => ['heading_state' => 'hover'],
 			),
 			'heading_typo_hover' => array(
 				'type' => 'typography',
 				'label' => __pl('service_heading_typo'),
-				'default' => ',28,,600,,,,,,,',
 				'screen' => 1,
 				'css' => ['{{element}}:hover .pagelayer-service-heading' => 'font-family: {{val[0]}}; font-size: {{val[1]}}px !important; font-style: {{val[2]}} !important; font-weight: {{val[3]}} !important; font-variant: {{val[4]}} !important; text-decoration-line: {{val[5]}} !important; text-decoration-style: {{val[6]}} !important; line-height: {{val[7]}}em !important; text-transform: {{val[8]}} !important; letter-spacing: {{val[9]}}px !important; word-spacing: {{val[10]}}px !important;'],
 				'show' => ['heading_state' => 'hover'],
@@ -4534,7 +4532,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 		//service content style
 		'service_content_style' =>[
 			'service_text_alignment' => array(
-				'type' => 'select',
+				'type' => 'radio',
 				'label' => __pl('service_box_text_alignment'),
 				'default' => 'center',
 				'screen' => 1,
@@ -5064,14 +5062,12 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 			'heading_color_hover' => array(
 				'type' => 'color',
 				'label' => __pl('service_heading_color'),
-				'default' => '#3e8ef7',
 				'css' => ['{{element}}:hover .pagelayer-service-heading' => 'color:{{val}}'],
 				'show' => ['heading_state' => 'hover']
 			),
 			'heading_typo_hover' => array(
 				'type' => 'typography',
 				'label' => __pl('service_heading_typo'),
-				'default' => ',28,,600,,,,,,,',
 				'screen' => 1,
 				'css' => ['{{element}}:hover .pagelayer-service-heading' => 'font-family: {{val[0]}}; font-size: {{val[1]}}px !important; font-style: {{val[2]}} !important; font-weight: {{val[3]}} !important; font-variant: {{val[4]}} !important; text-decoration-line: {{val[5]}} !important; text-decoration-style: {{val[6]}} !important; line-height: {{val[7]}}em !important; text-transform: {{val[8]}} !important; letter-spacing: {{val[9]}}px !important; word-spacing: {{val[10]}}px !important;'],
 				'show' => ['heading_state' => 'hover']
@@ -5080,7 +5076,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 		//service content style
 		'service_content_style' =>[
 			'service_text_alignment' => array(
-				'type' => 'select',
+				'type' => 'radio',
 				'label' => __pl('alignment'),
 				'default' => 'center',
 				'screen' => 1,
@@ -5691,6 +5687,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_accordion_item', array(
 			'default_active' => array(
 				'type' => 'checkbox',
 				'label' => __pl('Default active tab'),
+				'addClass' => 'active'
 			),
 			'title' => array(
 				'type' => 'text',
@@ -5881,7 +5878,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_space', array(
 				'label' => __pl('Space Height'),
 				'screen' => 1,
 				'units' => ['px', '%'],
-				'css' => ['{{element}} .pagelayer-space-holder' => 'height: {{val}}px;'],
+				'css' => ['{{element}} .pagelayer-space-holder' => 'height: {{val}};'],
 				'default' => '10',
 				'min' => 0,
 				'max' => 1000,

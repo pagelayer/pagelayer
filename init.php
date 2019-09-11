@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) exit;
 
 define('PAGELAYER_BASE', plugin_basename(__FILE__));
 define('PAGELAYER_FILE', __FILE__);
-define('PAGELAYER_VERSION', '0.9.7');
+define('PAGELAYER_VERSION', '0.9.9');
 define('PAGELAYER_DIR', WP_PLUGIN_DIR.'/'.basename(dirname(PAGELAYER_FILE)));
 define('PAGELAYER_SLUG', 'pagelayer');
 define('PAGELAYER_URL', plugins_url('', PAGELAYER_FILE));
@@ -235,6 +235,7 @@ function pagelayer_enqueue_frontend($force = false){
 		add_action('wp_head', 'pagelayer_global_js', 2);
 		
 		$premium_js = '';
+		$premium_css = '';
 		if(defined('PAGELAYER_PREMIUM')){
 			$premium_js = ',chart.min.js,slick.min.js,premium-frontend.js';
 			$premium_css = ',slick.css,slick-theme.css,premium-frontend.css';

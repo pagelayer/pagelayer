@@ -884,6 +884,19 @@ function pagelayer_sc_grid_gallery(&$el){
 	}
 }
 
+// Testimonial Handler
+function pagelayer_sc_testimonial(&$el){
+	
+	$el['atts']['func_image'] = @$el['tmp']['avatar-'.$el['atts']['custom_size'].'-url'];
+	$el['atts']['func_image'] = empty($el['atts']['func_image']) ? @$el['tmp']['avatar-full-url'] : $el['atts']['func_image'];
+	
+	if(!empty($image)){
+		foreach($image as $k => $v){
+			$el['tmp']['avatar-'.$k] = $v;
+		}
+	}
+	
+}
 
 // Video Handler
 function pagelayer_sc_video(&$el){

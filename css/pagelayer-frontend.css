@@ -47,7 +47,7 @@ pointer-events:none;
 }
 
 .pagelayer-col-holder,
-.pagelayer-col>.pagelayer-col{
+.pagelayer-col{
 position:relative;
 }
 
@@ -3143,3 +3143,44 @@ margin-right: auto;
 }
 
 /*******************/
+
+/* PageLayer Owl */
+
+.pagelayer-owl-stage-outer [class^="pagelayer-owl-"],
+.pagelayer-owl-carousel .pagelayer-ele-wrap,
+.pagelayer-slides-holder,
+.pagelayer-owl-stage-outer{
+height: 100%;
+}
+
+.pagelayer-owl-prev,
+.pagelayer-owl-next{
+position: absolute;
+top: 50%;
+transform: translateY(-50%);
+}
+
+.pagelayer-owl-prev{
+left: 0;
+}
+
+.pagelayer-owl-next{
+right: 0;
+}
+
+.pagelayer-owl-theme .pagelayer-owl-nav{
+margin-top: 0 !important;
+}
+
+.pagelayer-owl-nav span{
+position:absolute;
+transform:translate(-50%, -53%);
+}
+
+/* PageLayer Owl End */
+
+/* Space Widget */
+.pagelayer-space-holder{
+height: 10px;
+}
+/* Space Widget End */

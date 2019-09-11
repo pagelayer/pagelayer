@@ -35,6 +35,7 @@ $files = array(
 		'trumbowyg.min.js',
 		'trumbowyg.js',
 		'trumbowyg.fontfamily.js',
+		'trumbowyg.fontsize.min.js',
 		'trumbowyg-pagelayer.js',
 		'pen.js',
 		// Enduser JS
