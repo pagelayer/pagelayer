@@ -44,6 +44,7 @@ function pagelayer_render_pl_col(el){
 		}
 
 		el.$.parent().addClass('pagelayer-col-'+el.atts['col']);
+		el.$.parent().css('width', '');
 	}
 	
 	if(el.atts['col_width']){

@@ -1154,12 +1154,22 @@ function pagelayer_export_template(){
 	}
 	
 	// Get the active theme
-	$theme_dir = get_template_directory();
+	$theme_dir = get_stylesheet_directory();
 	$conf = [];
+	
+	$pagelayer->export_mode = 1;
 	
 	// Write the files
 	foreach($pagelayer->templates as $k => $v){
-		file_put_contents($theme_dir.'/'.$v->post_name.'.pgl', $v->post_content);
+		
+		// Are there specific templates to export
+		if(!empty($_POST['templates'])){
+			if(!isset($_POST['templates'][$v->ID])){
+				continue;
+			}
+		}
+		
+		file_put_contents($theme_dir.'/'.$v->post_name.'.pgl', pagelayer_export_content($v->post_content));
 		$conf[$v->post_name] = [
 			'type' => get_post_meta($v->ID, 'pagelayer_template_type', true),
 			'conditions' => get_post_meta($v->ID, 'pagelayer_template_conditions', true),
@@ -1168,6 +1178,42 @@ function pagelayer_export_template(){
 	
 	// Write the config
 	file_put_contents($theme_dir.'/pagelayer.conf', json_encode($conf, JSON_PRETTY_PRINT));
+	
+	// Any pages to export for users ?
+	if(!empty($_POST['pages'])){
+		
+		mkdir($theme_dir.'/data/');
+		mkdir($theme_dir.'/data/page');
+		
+		$conf = [];
+		
+		// Load the pages
+		$pages_query = new WP_Query(['post_type' => 'page', 'status' => 'publish']);
+		$pages = $pages_query->posts;
+	
+		// Write the files
+		foreach($pages as $k => $v){
+			
+			if(!isset($_POST['pages'][$v->ID])){
+				continue;
+			}
+		
+			file_put_contents($theme_dir.'/data/page/'.$v->post_name, pagelayer_export_content($v->post_content));
+			unset($v->post_content);
+			$conf['page'][$v->post_name] = $v;
+			
+		}
+	
+		// Write the config
+		file_put_contents($theme_dir.'/pagelayer-data.conf', json_encode($conf, JSON_PRETTY_PRINT));
+		
+	}
+	
+	// Are we to export any media ?
+	if(!empty($pagelayer->media_to_export)){		
+		// TODO
+		//$done['media'] = $pagelayer->media_to_export;
+	}
 	
 	$done['success'] = __pl('temp_export_success');
 	

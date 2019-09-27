@@ -399,6 +399,11 @@ function pagelayer_shortlink($id){
 	return $link;
 }
 
+// Pagelayer live link
+function pagelayer_livelink($id){
+	return pagelayer_shortlink($id).'&pagelayer-live=1';
+}
+
 // Are we in live mode ?
 function pagelayer_is_live(){
 
@@ -573,7 +578,9 @@ function pagelayer_add_shortcode($tag, $params = array()){
 
 // Returns the Image values
 function pagelayer_image($id){
-
+	
+	global $pagelayer;
+	
 	$ret = [];
 
 	// External image ?
@@ -590,6 +597,11 @@ function pagelayer_image($id){
 
 		// Is there an attachment which is an image ?
 		if(!empty($image) && $image->post_type == 'attachment' && wp_attachment_is_image($id)){
+		
+			// Need to export necessary media
+			if(!empty($pagelayer->export_mode)){
+				$pagelayer->media_to_export[] = $id;
+			}
 
 			$sizes = get_intermediate_image_sizes();
 			array_unshift($sizes, 'full');
@@ -656,6 +668,11 @@ function pagelayer_attachment($id){
 
 	// Attachment
 	}elseif(!empty($id)){
+		
+		// Need to export necessary media
+		if(!empty($pagelayer->export_mode)){
+			$pagelayer->media_to_export[] = $id;
+		}
 
 		$ret['url'] = wp_get_attachment_url($id);
 
@@ -875,7 +892,7 @@ color: red;
 	}
 	
 	echo '
-	<p style="font-size:13px">We are glad you like <a href="'.$opts['website'].'"><b>PageLayer</b></a> and have been using it since the past few days. It is time to take the next step !</p>
+	<p style="font-size:13px">We are glad you like <a href="'.$opts['website'].'"><b>Pagelayer</b></a> and have been using it since the past few days. It is time to take the next step !</p>
 	<p>
 		'.(empty($opts['rating']) ? '' : '<a class="pagelayer_promo_button pagelayer_promo_button2" target="_blank" href="'.$opts['rating'].'">Rate it 5★\'s</a>').'
 		'.(empty($opts['facebook']) ? '' : '<a class="pagelayer_promo_button pagelayer_promo_button3" target="_blank" href="'.$opts['facebook'].'"><span class="dashicons dashicons-thumbs-up"></span> Facebook</a>').'
@@ -1431,4 +1448,17 @@ function pagelayer_shortcode_current_query($query_args, $atts, $type){
 	}
 	
 	return $query_args;
+}
+
+function pagelayer_export_content($content){
+		
+	// Just call do_shortcode so we can get list of media files to export
+	//do_shortcode($content);
+	
+	$theme_url = preg_replace('/http(s?):\/\//is', '', get_stylesheet_directory_uri());
+	
+	$content = preg_replace('/http(s?):\/\/'.preg_quote($theme_url, '/').'/is', '{{theme_url}}', $content);
+	
+	return $content;
+	
 }

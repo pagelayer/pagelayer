@@ -610,7 +610,7 @@ $pagelayer->styles['ele_styles'] = [
 	'ele_zindex' => [
 		'type' => 'slider',
 		'label' => __pl('z-index'),
-		'css' => 'z-index: {{val}}',
+		'css' => 'z-index: {{val}}; position: relative;',
 	],
 	'ele_shadow' => [
 		'type' => 'shadow',
@@ -633,6 +633,7 @@ $pagelayer->styles['border_styles'] = [
 	'border_type' => [
 		'type' => 'select',
 		'label' => __pl('border_type'),
+		'screen' => 1,
 		'list' => [
 			'' => __pl('none'),
 			'solid' => __pl('solid'),
@@ -649,6 +650,7 @@ $pagelayer->styles['border_styles'] = [
 		'label' => __pl('border_width'),
 		'default' => '1,1,1,1',
 		'units' => ['px', 'em'],
+		'screen' => 1,
 		'show' => [
 			'border_hover' => ''
 		],
@@ -661,6 +663,7 @@ $pagelayer->styles['border_styles'] = [
 		'type' => 'color',
 		'label' => __pl('border_color'),
 		'default' => '#CCC',
+		'screen' => 1,
 		'show' => [
 			'border_hover' => ''
 		],
@@ -673,6 +676,7 @@ $pagelayer->styles['border_styles'] = [
 		'type' => 'padding',
 		'label' => __pl('border_radius'),
 		'units' => ['px', 'em'],
+		'screen' => 1,
 		'show' => ['border_hover' => ''],
 		'css' => 'border-radius: {{val[0]}} {{val[1]}} {{val[2]}} {{val[3]}}; -webkit-border-radius: {{val[0]}} {{val[1]}} {{val[2]}} {{val[3]}};-moz-border-radius: {{val[0]}} {{val[1]}} {{val[2]}} {{val[3]}};',
 	],
@@ -685,6 +689,7 @@ $pagelayer->styles['border_styles'] = [
 	'border_type_hover' => [
 		'type' => 'select',
 		'label' => __pl('border_type'),
+		'screen' => 1,
 		'list' => [
 			'' => __pl('none'),
 			'solid' => __pl('solid'),
@@ -700,6 +705,7 @@ $pagelayer->styles['border_styles'] = [
 		'type' => 'padding',
 		'label' => __pl('border_width'),
 		'units' => ['px', 'em'],
+		'screen' => 1,
 		'show' => [
 			'border_hover' => 'hover'
 		],
@@ -711,6 +717,7 @@ $pagelayer->styles['border_styles'] = [
 	'border_color_hover' => [
 		'type' => 'color',
 		'label' => __pl('border_color'),
+		'screen' => 1,
 		'show' => [
 			'border_hover' => 'hover'
 		],
@@ -722,6 +729,7 @@ $pagelayer->styles['border_styles'] = [
 	'border_radius_hover' => [
 		'type' => 'padding',
 		'label' => __pl('border_radius'),
+		'screen' => 1,
 		'units' => ['px', 'em'],
 		'show' => ['border_hover' => 'hover'],
 		'css' => ['{{element}}:hover' => 'border-radius: {{val[0]}} {{val[1]}} {{val[2]}} {{val[3]}}; -webkit-border-radius:  {{val[0]}} {{val[1]}} {{val[2]}} {{val[3]}};-moz-border-radius: {{val[0]}} {{val[1]}} {{val[2]}} {{val[3]}};'],
@@ -828,7 +836,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_row', array(
 				</div>
 			</div>
 			<div if="{{overlay_type}}" class="pagelayer-background-overlay"></div>
-			<div class="pagelayer-row-holder pagelayer-row pagelayer-auto"></div>',
+			<div class="pagelayer-row-holder pagelayer-row pagelayer-auto pagelayer-width-{{width_content}}"></div>',
 		'holder' => '.pagelayer-row-holder',
 		'params' => array(
 			'stretch' => array(
@@ -2307,6 +2315,20 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_icon', array(
 					'icon_hover' => ''
 				),
 			),
+			'icon_bg_rotate' => array(
+				'type' => 'spinner',
+				'label' => __pl('rotate_icon'),
+				'default' => 0,
+				'css' => ['{{element}} i:before' => 'transform: translate(-50%, -50%) rotate({{val}}deg)'],
+				'min' => 0,
+				'max' => 360,
+				'step' => 1,
+				'screen' => 1,
+				'show' => array(
+					'icon_hover' => ''
+				),
+				'req' => [ '!bg_shape' => '']
+			),
 			'bg_color' => array(
 				'type' => 'color',
 				'label' => __pl('service_box_icon_background_color_label'),
@@ -2327,7 +2349,8 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_icon', array(
 				'max' => 5000,
 				'default' => 400,
 				'screen' => 1,
-				'css' => ['{{element}} i' => '-webkit-transition: all {{val}}ms; transition: all {{val}}ms;'],
+				'css' => ['{{element}} i' => '-webkit-transition: all {{val}}ms; transition: all {{val}}ms;',
+				'{{element}} i:hover:before' => '-webkit-transition: all {{val}}ms; transition: all {{val}}ms;'],
 				'show' => array(
 					'icon_hover' => 'hover'
 				),
@@ -2398,6 +2421,20 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_icon', array(
 				'label' => __pl('service_box_icon_rotate'),
 				'default' => 0,
 				'css' => ['{{element}} i:hover' => 'transform: rotate({{val}}deg)'],
+				'min' => 0,
+				'max' => 360,
+				'step' => 1,
+				'screen' => 1,
+				'show' => array(
+					'icon_hover' => 'hover'
+				),
+				'req' => [ '!bg_shape' => '']
+			),
+			'icon_bg_rotate_hover' => array(
+				'type' => 'spinner',
+				'label' => __pl('rotate_icon'),
+				'default' => 0,
+				'css' => ['{{element}} i:hover:before' => 'transform: translate(-50%, -50%) rotate({{val}}deg)'],
 				'min' => 0,
 				'max' => 360,
 				'step' => 1,
@@ -4261,10 +4298,13 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 				<img class="pagelayer-img pagelayer-animation-{{anim_hover}}" src="{{func_image}}">
 			</div>
 			<div class="pagelayer-service-details">
-				<div if={{service_heading}} class="pagelayer-service-heading">{{service_heading}}</div>
+				<a if-ext={{heading_url}} href="{{heading_url}}" class="pagelayer-ele-link">
+					<div if={{service_heading}} class="pagelayer-service-heading">{{service_heading}}</div>
+				</a>
 				<div if={{service_text}} class="pagelayer-service-text">{{service_text}}</div>
 				<a if="{{service_button}}" href="{{service_button_url}}" class="pagelayer-service-btn {{service_button_type}} pagelayer-ele-link pagelayer-button {{service_button_size}}">{{service_button_text}}</a>
 			</div>
+			<a if-ext={{box_url}} href="{{box_url}}" class="pagelayer-ele-link pagelayer-box-link"> </a>
 		</div>',
 		'params' => [
 			'service_image' => array(
@@ -4293,6 +4333,10 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 				'req' => array(
 					'service_image_size' => 'custom',
 				)
+			),
+			'box_url' => array(
+				'type' => 'link',
+				'label' => __pl('url'),
 			),
 			'anim_hover' => array(
 				'type' => 'select',
@@ -4350,10 +4394,21 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 				),
 				'req' => ['!service_alignment' => 'top']
 			),
+			'service_img_alignment' => array(
+				'type' => 'radio',
+				'label' => __pl('horizontal_pos'),
+				'css' => ['{{element}} .pagelayer-service-image' => 'text-align: {{val}};,'],
+				'list' => array(
+					'left' => __pl('left'),
+					'center' => __pl('center'),
+					'right' => __pl('right'),
+				),
+				'req' => ['service_alignment' => 'top']
+			),
 			'service_image_spacing' => array(
 				'type' => 'padding',
 				'label' => __pl('service_image_spacing'),
-				'css' => ['{{element}} .pagelayer-service-image img' => 'padding-top:{{val[0]}}px; padding-right:{{val[1]}}px; padding-bottom:{{val[2]}}px; padding-left:{{val[3]}}px;'],
+				'css' => ['{{element}} .pagelayer-service-image' => 'padding-top:{{val[0]}}px; padding-right:{{val[1]}}px; padding-bottom:{{val[2]}}px; padding-left:{{val[3]}}px;'],
 			),
 			'img_bor_state' => array(
 				'type' => 'radio',
@@ -4363,6 +4418,13 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 					'normal' => __pl('Normal'),
 					'hover' => __pl('Hover'),
 				),
+			),
+			'img_filter' => array(
+				'type' => 'filter',
+				'label' => __pl('filter'),
+				'default' => '0,100,100,0,0,100,100',
+				'css' => ['{{element}} img' => 'filter: blur({{val[0]}}px) brightness({{val[1]}}%) contrast({{val[2]}}%) grayscale({{val[3]}}%) hue-rotate({{val[4]}}deg) opacity({{val[5]}}%) saturate({{val[6]}}%)'],
+				'show' => ['img_bor_state' => 'normal'],
 			),
 			'img_border_type' => array(
 				'type' => 'select',
@@ -4419,6 +4481,13 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 				'css' => ['{{element}} .pagelayer-service-image img' =>'-webkit-transition: all {{val}}ms !important; transition: all {{val}}ms !important;'],
 				'show' => ['img_bor_state' => 'hover'],
 			),
+			'img_filter_hover' => array(
+				'type' => 'filter',
+				'label' => __pl('filter'),
+				'default' => '0,100,100,0,0,100,100',
+				'css' => ['{{element}}:hover img' => 'filter: blur({{val[0]}}px) brightness({{val[1]}}%) contrast({{val[2]}}%) grayscale({{val[3]}}%) hue-rotate({{val[4]}}deg) opacity({{val[5]}}%) saturate({{val[6]}}%)'],
+				'show' => ['img_bor_state' => 'hover'],
+			),
 			'img_border_type_hover' => array(
 				'type' => 'select',
 				'label' => __pl('icon_border_type_hover'),
@@ -4472,14 +4541,17 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 				'default' => 'This is an Image Box',
 				'text' => __pl('open_in_wpeditor'),
 			),
-			'service_heading_spacing' => array(
-				'type' => 'slider',
-				'label' => __pl('service_heading_spacing'),
-				'min' => '0',
-				'max' => '200',
-				'default' => '10',
+			'heading_url' => array(
+				'type' => 'link',
+				'label' => __pl('url'),
+				'req' => ['!service_heading' => '']
+			),
+			'service_title_spacing' => array(
+				'type' => 'padding',
+				'label' => __pl('spacing'),
 				'screen' => 1,
-				'css' => ['{{element}} .pagelayer-service-heading' => 'margin-bottom: {{val}}px !important;'],
+				'default' => ',,10,',
+				'css' => ['{{element}} .pagelayer-service-heading' => 'padding-top:{{val[0]}}px; padding-right:{{val[1]}}px; padding-bottom:{{val[2]}}px; padding-left:{{val[3]}}px;']
 			),
 			'heading_state' => array(
 				'type' => 'radio',
@@ -4544,6 +4616,12 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 				),
 				'css' => ['{{element}} .pagelayer-service-details' => 'text-align:{{val}};'],
 			),
+			'service_content_spacing' => array(
+				'type' => 'padding',
+				'label' => __pl('spacing'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-text' => 'padding-top:{{val[0]}}px; padding-right:{{val[1]}}px; padding-bottom:{{val[2]}}px; padding-left:{{val[3]}}px;'],
+			),
 			'service_text' => array(
 				'type' => 'editor',
 				'label' => __pl('service_box_text_label'),
@@ -4588,11 +4666,22 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 					'pagelayer-btn-large' => __pl('large'),
 					'pagelayer-btn-extra-large' => __pl('extra_large'),
 					'pagelayer-btn-double-large' => __pl('double_large'),
-					//'pagelayer-btn-custom' => __pl('custom'),
+					'pagelayer-btn-custom' => __pl('custom'),
 				),
 				'req' => array(
 					'service_button' => 'true'
 				)
+			),
+			'service_btn_dim' => array(
+				'type' => 'dimension',
+				'label' => __pl('service_btn_dim'),
+				'default' => '10,15',
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn' => 'padding-top:{{val[0]}}px;padding-right:{{val[1]}}px;padding-bottom:{{val[0]}}px;padding-left:{{val[1]}}px;'],
+				'req' => [
+					'service_button' => 'true',
+					'service_button_size' => 'pagelayer-btn-custom',
+				]
 			),
 			'service_button_url' => array(
 				'type' => 'link',
@@ -4609,14 +4698,16 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 					'service_button' => 'true'
 				),
 			),
-			'service_btn_spacing' => array(
-				'type' => 'slider',
-				'label' => __pl('service_btn_spacing'),
-				'min' => '0',
-				'max' => '200',
-				'default' => '10',
+			'service_button_typo' => array(
+				'type' => 'typography',
+				'label' => __pl('typography'),
 				'screen' => 1,
-				'css' => ['{{element}} .pagelayer-service-btn' => 'margin-top: {{val}}px;'],
+				'css' => ['{{element}} .pagelayer-service-btn' => 'font-family: {{val[0]}}; font-size: {{val[1]}}px !important; font-style: {{val[2]}} !important; font-weight: {{val[3]}} !important; font-variant: {{val[4]}} !important; text-decoration-line: {{val[5]}} !important; text-decoration-style: {{val[6]}} !important; line-height: {{val[7]}}em !important; text-transform: {{val[8]}} !important; letter-spacing: {{val[9]}}px !important; word-spacing: {{val[10]}}px !important;'],
+			),
+			'service_btn_spacing' => array(
+				'type' => 'padding',
+				'label' => __pl('spacing'),
+				'css' => ['{{element}} .pagelayer-service-btn' => 'margin-top:{{val[0]}}px; margin-right:{{val[1]}}px; margin-bottom:{{val[2]}}px; margin-left:{{val[3]}}px;'],
 				'req' => [
 					'service_button' => 'true',
 				]
@@ -4713,12 +4804,15 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 				<i class="fa fa-{{service_icon}} pagelayer-icon-{{service_icon_shape_type}} pagelayer-animation-{{anim_hover}}" aria-hidden="true"></i>
 			</div>
 			<div class="pagelayer-service-details">
-				<div if="{{service_heading}}" class="pagelayer-service-heading">{{service_heading}}</div>
+				<a if-ext={{heading_url}} href="{{heading_url}}" class="pagelayer-ele-link">
+					<div if="{{service_heading}}" class="pagelayer-service-heading">{{service_heading}}</div>
+				</a>
 				<div if="{{service_text}}" class="pagelayer-service-text">{{service_text}}</div>
 				<a if="{{service_button}}" href="{{service_button_url}}" class="pagelayer-service-btn pagelayer-button pagelayer-ele-link {{iconbox_button_type}} {{service_button_size}}">
 					<span if="{{service_button_text}}">{{service_button_text}}</span>
 				</a>
 			</div>
+			<a if-ext={{box_url}} href="{{box_url}}" class="pagelayer-ele-link pagelayer-box-link"> </a>
 		</div>',
 		'params' => array(
 			'service_icon' => array(
@@ -4748,6 +4842,21 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 				'req' => array(
 					'!service_alignment' => 'top'
 				)
+			),
+			'service_icon_alignment' => array(
+				'type' => 'radio',
+				'label' => __pl('horizontal_pos'),
+				'css' => ['{{element}} .pagelayer-service-icon' => 'text-align: {{val}};,'],
+				'list' => array(
+					'left' => __pl('left'),
+					'center' => __pl('center'),
+					'right' => __pl('right'),
+				),
+				'req' => ['service_alignment' => 'top']
+			),
+			'box_url' => array(
+				'type' => 'link',
+				'label' => __pl('url'),
 			),
 		),
 		// icon style
@@ -5016,14 +5125,17 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 				'default' => 'This is Icon Box',
 				'text' => __pl('open_in_wpeditor'),
 			),
-			'service_heading_spacing' => array(
-				'type' => 'slider',
-				'label' => __pl('service_heading_spacing'),
-				'min' => '0',
-				'max' => '200',
-				'default' => '10',
+			'heading_url' => array(
+				'type' => 'link',
+				'label' => __pl('url'),
+				'req' => ['!service_heading' => '']
+			),
+			'service_title_spacing' => array(
+				'type' => 'padding',
+				'label' => __pl('spacing'),
 				'screen' => 1,
-				'css' => ['{{element}} .pagelayer-service-heading' => 'margin-bottom: {{val}}px;'],
+				'default' => ',,10,',
+				'css' => ['{{element}} .pagelayer-service-heading' => 'padding-top:{{val[0]}}px; padding-right:{{val[1]}}px; padding-bottom:{{val[2]}}px; padding-left:{{val[3]}}px;']
 			),
 			'heading_state' => array(
 				'type' => 'radio',
@@ -5088,6 +5200,11 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 				),
 				'css' => ['{{element}} .pagelayer-service-details' => 'text-align:{{val}};'],
 			),
+			'service_content_spacing' => array(
+				'type' => 'padding',
+				'label' => __pl('spacing'),
+				'css' => ['{{element}} .pagelayer-service-text' => 'padding-top:{{val[0]}}px; padding-right:{{val[1]}}px; padding-bottom:{{val[2]}}px; padding-left:{{val[3]}}px;'],
+			),
 			'service_text' => array(
 				'type' => 'editor',
 				'label' => __pl('iconbox_box_text_label'),
@@ -5132,11 +5249,22 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 					'pagelayer-btn-large' => __pl('large'),
 					'pagelayer-btn-extra-large' => __pl('extra_large'),
 					'pagelayer-btn-double-large' => __pl('double_large'),
-					//'pagelayer-btn-custom' => __pl('custom'),
+					'pagelayer-btn-custom' => __pl('custom'),
 				),
 				'req' => array(
 					'service_button' => 'true'
 				)
+			),
+			'service_btn_dim' => array(
+				'type' => 'dimension',
+				'label' => __pl('service_btn_dim'),
+				'default' => '10,15',
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn' => 'padding-top:{{val[0]}}px;padding-right:{{val[1]}}px;padding-bottom:{{val[0]}}px;padding-left:{{val[1]}}px;'],
+				'req' => [
+					'service_button' => 'true',
+					'service_button_size' => 'pagelayer-btn-custom',
+				]
 			),
 			'service_button_url' => array(
 				'type' => 'link',
@@ -5153,14 +5281,16 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 					'service_button' => 'true'
 				),
 			),
-			'service_btn_spacing' => array(
-				'type' => 'slider',
-				'label' => __pl('service_btn_spacing'),
-				'min' => '0',
-				'max' => '200',
-				'default' => '10',
+			'service_button_typo' => array(
+				'type' => 'typography',
+				'label' => __pl('typography'),
 				'screen' => 1,
-				'css' => ['{{element}} .pagelayer-service-btn' => 'margin-top: {{val}}px;'],
+				'css' => ['{{element}} .pagelayer-service-btn' => 'font-family: {{val[0]}}; font-size: {{val[1]}}px !important; font-style: {{val[2]}} !important; font-weight: {{val[3]}} !important; font-variant: {{val[4]}} !important; text-decoration-line: {{val[5]}} !important; text-decoration-style: {{val[6]}} !important; line-height: {{val[7]}}em !important; text-transform: {{val[8]}} !important; letter-spacing: {{val[9]}}px !important; word-spacing: {{val[10]}}px !important;'],
+			),
+			'service_btn_spacing' => array(
+				'type' => 'padding',
+				'label' => __pl('spacing'),
+				'css' => ['{{element}} .pagelayer-service-btn' => 'margin-top:{{val[0]}}px; margin-right:{{val[1]}}px; margin-bottom:{{val[2]}}px; margin-left:{{val[3]}}px;'],
 				'req' => [
 					'service_button' => 'true',
 				]

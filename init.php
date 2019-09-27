@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) exit;
 
 define('PAGELAYER_BASE', plugin_basename(__FILE__));
 define('PAGELAYER_FILE', __FILE__);
-define('PAGELAYER_VERSION', '0.9.9');
+define('PAGELAYER_VERSION', '1.0.0');
 define('PAGELAYER_DIR', WP_PLUGIN_DIR.'/'.basename(dirname(PAGELAYER_FILE)));
 define('PAGELAYER_SLUG', 'pagelayer');
 define('PAGELAYER_URL', plugins_url('', PAGELAYER_FILE));
@@ -104,7 +104,7 @@ function pagelayer_load_plugin(){
 		'interval' => 30,// In days
 		//'pro_url' => 'https://pagelayer.com/themes/wordpress/corporate/Bizworx_Pro',
 		'rating' => 'https://wordpress.org/plugins/pagelayer/#reviews',
-		'twitter' => 'https://twitter.com/pagelayer?status='.rawurlencode('I love #PageLayer Site Builder by @pagelayer team  for my #WordPress site - '.home_url()),
+		'twitter' => 'https://twitter.com/pagelayer?status='.rawurlencode('I love #Pagelayer Site Builder by @pagelayer team  for my #WordPress site - '.home_url()),
 		'facebook' => 'https://www.facebook.com/pagelayer',
 		'website' => '//pagelayer.com',
 		'image' => PAGELAYER_URL.'/images/pagelayer-logo-256.png'
@@ -128,10 +128,10 @@ function pagelayer_admin_menu() {
 	$capability = 'activate_plugins';// TODO : Capability for accessing this page
 
 	// Add the menu page
-	add_menu_page(__('PageLayer Editor'), __('Pagelayer'), $capability, 'pagelayer', 'pagelayer_page_handler', PAGELAYER_URL.'/images/pagelayer-logo-19.png');
+	add_menu_page(__('Pagelayer Editor'), __('Pagelayer'), $capability, 'pagelayer', 'pagelayer_page_handler', PAGELAYER_URL.'/images/pagelayer-logo-19.png');
 
 	// Settings Page
-	add_submenu_page('pagelayer', __('PageLayer Editor'), __('Settings'), $capability, 'pagelayer', 'pagelayer_page_handler');
+	add_submenu_page('pagelayer', __('Pagelayer Editor'), __('Settings'), $capability, 'pagelayer', 'pagelayer_page_handler');
 
 	// Its premium
 	if(defined('PAGELAYER_PREMIUM')){
@@ -148,17 +148,20 @@ function pagelayer_admin_menu() {
 		// Add new template
 		add_submenu_page('pagelayer', __('Add New Template'), __('Add New Template'), $capability, 'pagelayer_template_wizard', 'pagelayer_builder_template_wizard');
 
+		// Export Template Wizard
+		add_submenu_page('pagelayer', __('Export Templates into a Theme'), __('Export Templates'), $capability, 'pagelayer_template_export', 'pagelayer_builder_export');
+
 	// Its free
 	}else{
 
 		// Go Pro link
-		add_submenu_page('pagelayer', __('PageLayer Go Pro'), __('Go Pro'), $capability, PAGELAYER_PRO_URL);
+		add_submenu_page('pagelayer', __('Pagelayer Go Pro'), __('Go Pro'), $capability, PAGELAYER_PRO_URL);
 
 	}
 
 }
 
-// This function will handle the pages in Pages in PageLayer
+// This function will handle the Settings Pages in PageLayer
 function pagelayer_page_handler(){
 
 	global $wp_version, $pagelayer;
@@ -218,9 +221,26 @@ function pagelayer_enqueue_frontend($force = false){
 	if(empty($post->ID)){
 		return;
 	}
+	
+	$is_pagelayer = false;
+	$is_audio = false;
+	
+	// This IF is for Archives mainly as $post->ID is only the first post in the archive 
+	// and we need to make sure that other posts are pagelayer or not
+	if(!empty($GLOBALS['wp_query']->posts) && is_array($GLOBALS['wp_query']->posts)){
+		foreach($GLOBALS['wp_query']->posts as $v){
+			if(get_post_meta($v->ID , 'pagelayer-data')){
+				$is_pagelayer = true;
+			}
+			
+			if(preg_match('/\[pl_audio/is', $v->post_content)){
+				$is_audio = true;
+			}
+		}
+	}
 
 	// Enqueue the FRONTEND CSS
-	if(get_post_meta($post->ID , 'pagelayer-data') || $force){
+	if(get_post_meta($post->ID , 'pagelayer-data') || $is_pagelayer || $force){
 
 		// We dont need the auto <p> and <br> as they interfere with us
 		remove_filter('the_content', 'wpautop');
@@ -239,9 +259,12 @@ function pagelayer_enqueue_frontend($force = false){
 		if(defined('PAGELAYER_PREMIUM')){
 			$premium_js = ',chart.min.js,slick.min.js,premium-frontend.js';
 			$premium_css = ',slick.css,slick-theme.css,premium-frontend.css';
+			
 			// Load this For audio widget
-			wp_enqueue_script('wp-mediaelement');
-			wp_enqueue_style( 'wp-mediaelement' );
+			if($is_audio || pagelayer_is_live_iframe()){
+				wp_enqueue_script('wp-mediaelement');
+				wp_enqueue_style( 'wp-mediaelement' );
+			}
 		}
 				
 		// Enqueue our Editor's Frontend JS
@@ -307,7 +330,7 @@ function pagelayer_global_styles(){
 	
 	$width  = get_option('pagelayer_content_width', '1170');
 	
-	$styles .= '.pagelayer-row-stretch-auto .pagelayer-row-holder{ max-width: '.$width.'px; margin-left: auto; margin-right: auto;}';
+	$styles .= '.pagelayer-row-stretch-auto .pagelayer-row-holder, .pagelayer-row-stretch-full .pagelayer-row-holder.pagelayer-width-auto{ max-width: '.$width.'px; margin-left: auto; margin-right: auto;}';
 	
 	$styles .= '</style>';
 	
@@ -367,7 +390,7 @@ function pagelayer_after_title(){
 	echo '
 <div id="pagelayer-editor-button-row" style="margin-top:15px; display:inline-block;">
 	<a id="pagelayer-editor-button" href="'.$link.'" class="button button-primary button-large" style="height:auto; padding:6px; font-size:18px;">
-		<img src="'.PAGELAYER_URL.'/images/pagelayer-logo-40.png" align="top" width="24" /> <span>'.__('Edit with PageLayer').'</span>
+		<img src="'.PAGELAYER_URL.'/images/pagelayer-logo-40.png" align="top" width="24" /> <span>'.__('Edit with Pagelayer').'</span>
 	</a>
 </div>';
 
@@ -382,7 +405,7 @@ function pagelayer_gutenberg_after_title(){
 	echo '
 <div id="pagelayer-editor-button-row" style="margin-left:15px; display:none">
 	<a id="pagelayer-editor-button" href="'.$link.'" class="button button-primary button-large" style="height:auto; padding:6px; font-size:18px;">
-		<img src="'.PAGELAYER_URL.'/images/pagelayer-logo-40.png" align="top" width="24" /> <span>'.__('Edit with PageLayer').'</span>
+		<img src="'.PAGELAYER_URL.'/images/pagelayer-logo-40.png" align="top" width="24" /> <span>'.__('Edit with Pagelayer').'</span>
 	</a>
 </div>
 
@@ -413,7 +436,7 @@ add_filter( 'page_row_actions', 'pagelayer_quick_link', 10, 2 );
 function pagelayer_quick_link($actions, $post){
 	$link = pagelayer_shortlink($post->ID).'&pagelayer-live=1';
 
-	$actions['pagelayer'] = '<a href="'.esc_url( $link ).'">'.__( 'Edit using PageLayer', 'pagelayer') .'</a>';
+	$actions['pagelayer'] = '<a href="'.esc_url( $link ).'">'.__( 'Edit using Pagelayer', 'pagelayer') .'</a>';
 
 	return $actions;
 }

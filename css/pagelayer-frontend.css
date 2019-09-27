@@ -317,7 +317,8 @@ align-items: flex-start;
 }
 
 .pagelayer-service-image{
-line-height:0;	
+line-height:0;
+overflow:hidden;
 }
 
 .pagelayer-service-image img{
@@ -440,6 +441,14 @@ display: block;
 
 .pagelayer-service-heading{
 line-height:1;
+}
+
+.pagelayer-box-link{
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
 }
 
 /* Icon widget */
@@ -2837,6 +2846,10 @@ line-height:1.5;
 /* Tabs style end */
 
 /* Divider start */
+.pagelayer-divider-holder{
+line-height: 0;
+font-size: 0;
+}
 .pagelayer-divider-seperator{
 display: inline-block;
 }

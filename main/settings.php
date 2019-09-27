@@ -209,8 +209,8 @@ if(!defined('PAGELAYER_VERSION')) {
 	}
 ?>
 	<form class="pagelayer-setting-form" method="post" action="">
-		<h1>PageLayer Editor</h1>
-		<p>Welcome To PageLayer</p>
+		<h1>Pagelayer Settings</h1>
+		<p>Welcome To Pagelayer</p>
 		<div class="tabs-wrapper">
 			<h2 class="nav-tab-wrapper pagelayer-wrapper">
 				<a href="#general" class="nav-tab">General</a>
@@ -342,7 +342,7 @@ if(!defined('PAGELAYER_VERSION')) {
 			<?php } ?>
 			<div class="pagelayer-tab-panel" id="support">
 				<h2>Support</h2>
-				<h3>You can contact the PageLayer Group via email. Our email address is <a href="mailto:support@pagelayer.com">support@pagelayer.com</a>. We will get back to you as soon as possible!</h3>
+				<h3>You can contact the Pagelayer Team via email. Our email address is <a href="mailto:support@pagelayer.com">support@pagelayer.com</a>. We will get back to you as soon as possible!</h3>
 
 
 			</div>
@@ -351,7 +351,7 @@ if(!defined('PAGELAYER_VERSION')) {
 				<div class="pagelayer-acc-wrapper">
 					<span class="nav-tab pagelayer-acc-tab">1: Why choose us</span>
 					<div class="pagelayer-acc-panel">
-						<p>PageLayer is best live editor and easy to use and we will keep improving it !</P>
+						<p>Pagelayer is best live editor and easy to use and we will keep improving it !</P>
 					</div>
 					
 					<span class="nav-tab pagelayer-acc-tab">2: Support</span>

@@ -480,3 +480,15 @@ function pagelayer_get_post_content($id){
 	return $content;		
 
 }
+
+// Vars that can be used in template files
+function pagelayer_template_vars(){
+	
+	$replacers['{{theme_url}}'] = get_stylesheet_directory_uri();
+	$replacers['{{theme_images}}'] = get_stylesheet_directory_uri().'/images/';
+	$replacers['{{themes_dir}}'] = dirname(get_stylesheet_directory_uri());
+	$replacers['{{pl_site_url}}'] = home_url();
+	
+	return $replacers;
+	
+}

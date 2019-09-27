@@ -29,7 +29,7 @@ $files = array(
 		'widgets.js',
 		'premium.js',
 		'properties.js',
-		'base64.js',
+		'base-64.js',
 		'slimscroll.js',
 		'vanilla-picker.min.js',
 		'trumbowyg.min.js',

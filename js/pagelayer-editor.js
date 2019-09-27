@@ -21,7 +21,7 @@ var pagelayer_history_obj = {}, pagelayer_revision_obj = {};
 jQuery(document).ready(function(){
 	
 	// Set the title of the parent window
-	pagelayer.$$('head').append(pagelayer.$('title')[0].outerHTML);
+	try{ pagelayer.$$('head').append(pagelayer.$('title')[0].outerHTML); }catch(e){};
 	
 	pagelayer.blank_img = pagelayer_url+'/images/default-image.png';
 
@@ -57,7 +57,7 @@ jQuery(document).ready(function(){
 	pagelayer_left_click();
 	pagelayer_right_click();
 	
-	// Setup pagelayer history
+	// Setup pagelayer history handle
 	pagelayer_history_obj['action_data'] = [];
 	pagelayer_history_setup(true);
 
@@ -249,6 +249,24 @@ function pagelayer_setup_drag(){
 				return false;
 			}
 			
+			/*// If the columns more than 12 inside the row then return - As of now not enabled the below code
+			if(tag == 'pl_col'){
+				var _onTag = pagelayer_tag(onWrap);
+				var colEles;
+				
+				// Is on col
+				if(_onTag == 'pl_col'){
+					colEles = onWrap.closest('.pagelayer-row-holder').children('.pagelayer-ele-wrap');
+				}else{
+					colEles = onWrap.find('.pagelayer-row-holder').first().children('.pagelayer-ele-wrap');
+				}
+				
+				// If the columns more than 12
+				if(colEles.length >= 12){
+					return false;
+				}
+			}*/
+					
 			// Get the ID
 			var onId = onWrap.attr('pagelayer-wrap-id');
 			var onEle = onWrap.children('.pagelayer-ele');
@@ -600,10 +618,92 @@ function pagelayer_renumber_col(selector){
 			}
 		}
 		jEle.addClass('pagelayer-col-'+cols);
+		jEle.css({'width': ''});
 		Ele.addClass('pagelayer-col-'+cols);
-		
+		Ele.css({'width': ''});
+			
 		// Set the att
 		pagelayer_set_atts(Ele, obj);
+	});
+}
+
+// Make column resizable handler
+function pagelayer_col_make_resizable(wrap){
+		
+	// Resize handler element
+	var rHandler = jQuery('<div class="pagelayer-resize-handler"><div class="pagelayer-resize-icon"></div></div>');
+	
+	if( wrap.is(":last-child") ){			
+		wrap = wrap.prev();	
+	}
+	
+	var pResize = wrap.children('.pagelayer-ele-overlay').find('.pagelayer-resize-handler');
+	
+	if(pResize.length > 0){
+		return;
+	}
+	
+	// Append it
+	wrap.children('.pagelayer-ele-overlay').append(rHandler);
+	
+	// Resize start
+	rHandler.on('mousedown', function(e) {
+		e.preventDefault();
+		
+		var next_ele = wrap.next();
+		var rHolder_width = wrap.closest('.pagelayer-row-holder').width();
+		var new_width, nEle_new_width;
+		
+		// Original width
+		var original_width = wrap.width();
+		var original_mouse_x = e.pageX;
+		
+		// Add the element width and next element width
+		both_width = (original_width / rHolder_width *100) + (next_ele.width() / rHolder_width *100);
+		
+		if(both_width > 100){
+			return false;
+		}
+		
+		jQuery('body').css({'cursor': 'ew-resize'});
+		rHandler.show();
+		
+		var r_mousemove = function(e){
+			var width = original_width + (e.pageX - original_mouse_x);
+			
+			// Covert width in percentage
+			new_width = (width / rHolder_width *100).toFixed(2);
+			
+			if(both_width > new_width && new_width > 0){
+				nEle_new_width = (both_width - new_width).toFixed(2);
+				wrap.css({'width': new_width+'%'});
+				next_ele.css({'width': nEle_new_width+'%'});
+				
+				rHandler.attr({'pre-width': new_width+'%', 'next-width': nEle_new_width+'%'}); 
+			}
+			
+		};
+		
+		var r_mouseup = function(e){
+			
+			jQuery(document).off('mousemove', r_mousemove);
+			jQuery('body').css({'cursor': ''});
+			rHandler.removeAttr('style pre-width next-width');
+			
+			// find real element and next real element
+			var jEle = wrap.find('>.pagelayer-ele');
+			var nEle = next_ele.find('>.pagelayer-ele');
+	
+			// Set the element attrs
+			jEle.attr({'pagelayer-a-col_width': new_width, 'pagelayer-a-col': ''});
+			nEle.attr({'pagelayer-a-col_width': nEle_new_width, 'pagelayer-a-col': ''});
+			jQuery(document).off('mouseup', r_mouseup);
+			
+		};
+		
+		// Resize start
+		jQuery(document).on('mousemove', r_mousemove);
+		jQuery(document).on('mouseup', r_mouseup);
 	});
 }
 
@@ -675,7 +775,7 @@ function pagelayer_element_added(jEle){
 		'title' : pagelayer_shortcodes[sc]['name'],
 		'action' : 'Added',
 		'pl_id' : id,
-		'html' : html[0].outerHTML,
+		'html' : jQuery("[pagelayer-id="+id+"]"),
 		'cEle' : cEle
 	});	
 	
@@ -918,6 +1018,9 @@ function pagelayer_element_setup(selector, render){
 			
 			// Is it an empty col ?
 			pagelayer_empty_col(jEle.children('.pagelayer-col-holder'));
+			
+			// Make col resizable
+			pagelayer_col_make_resizable(wrap);
 		
 		}else{
 		
@@ -1124,27 +1227,115 @@ jQuery(document).keydown(function(event){
 	if(event.keyCode == 89 && event.ctrlKey){
 		pagelayer_do_history('redo');
 	}
+});
+
+// Handle Copy of content
+jQuery(document).on('copy', function(copyEvent){
 	
-	// ctrl+c handle
-	if(event.keyCode == 67 && event.ctrlKey){
+	// Check the active element
+	if(pagelayer_active.el && pagelayer_active.el.id){
 		
-		// Check the active element
-		if(pagelayer_active.el && pagelayer_active.el.id){
-			pagelayer_copy_select("[pagelayer-id='"+pagelayer_active.el.id+"']");
-		}
+		copyEvent.preventDefault();
+		
+		var eHtml = jQuery("[pagelayer-id='"+pagelayer_active.el.id+"']")[0].outerHTML;
+		
+		// We need to do Empty clipboard
+		(copyEvent.originalEvent || copyEvent).clipboardData.setData('pagelayer_ele', eHtml);
+				
+		// Save the active element id
+		//pagelayer_copy_select("[pagelayer-id='"+pagelayer_active.el.id+"']");
 		
 	}
 	
-	// ctrl+v handle
-	if(event.keyCode == 86 && event.ctrlKey){
+});
+
+// Handle Paste in the editor
+jQuery(document).on('paste', function(pasteEvent){
+	
+	var pEle_target = jQuery((pasteEvent.originalEvent || pasteEvent).target);
+	var pagelayer_ajax_func = {};
+	var contenteditable = false;
+	
+	if(pEle_target.closest('[contenteditable]').length > 0){
+		pEle_target = pEle_target.closest('[contenteditable]');
+		contenteditable = true;
+	}
+	
+	// This function for ajax before send call back
+	pagelayer_ajax_func['beforeSend'] = function(xhr){
+		
+		// If target is not content editable
+		if( pagelayer_empty(contenteditable) ){
+		
+			// If we dont have an active element then return false and stop ajax
+			if( !(pagelayer_active.el && pagelayer_active.el.id) ){
+				return false;
+			}
+							
+			pagelayer.copy_selected = jQuery('<div pagelayer-tag="pl_image"></div>');
+				
+			// Is it to be pastable
+			if(!pagelayer_can_copy_to('[pagelayer-id="'+pagelayer_active.el.id+'"]')){
+				pagelayer.copy_selected = '';
+				return false;
+			}
+		}
+		
+		pEle_target.css({'opacity': '0.33' , 'transition' : '0.1s'});
+	}
+	
+	// This function for ajax success call back
+	pagelayer_ajax_func['success'] = function(obj){
+		
+		// Successfully Uploaded
+		if(obj['success']){
+			
+			// For content editable e.g. Rich Text
+			if( !pagelayer_empty(contenteditable) ){
+				document.execCommand('insertImage', false, obj['data']['url']);
+			
+			// For our widgets
+			}else{
+				var fTo = pagelayer_can_copy_to('[pagelayer-id="'+pagelayer_active.el.id+'"]');
+				// We need to empty pagelayer.copy_selected
+				pagelayer.copy_selected = '';
+
+				// Create image html
+				var html = jQuery( pagelayer_create_sc('pl_image') );
+				html.attr('pagelayer-a-id', obj['data']['id']);
+				html.attr('pagelayer-tmp-id-url', obj['data']['url']);
+				
+				// Copy the element
+				var id = pagelayer_copy_element(html, fTo);
+				jQuery('[pagelayer-id="'+id+'"]').click();
+			}
+		
+		// Some error occured	
+		}else{
+			alert(obj['data']['message']);								
+		}
+	}
+	
+	// This function for ajax complete call back
+	pagelayer_ajax_func['complete'] = function(xhr){
+		//console.log(xhr);
+		pEle_target.css({'opacity': '1' , 'transition' : '0.1s'});
+	}
+	
+	var findImg = pagelayer_editable_paste_handler(pasteEvent, pagelayer_ajax_func);
+	
+	if(pagelayer_empty(findImg)){
 		
 		// Check the active element
 		if(pagelayer_active.el && pagelayer_active.el.id){
 			
 			var jEle = jQuery("[pagelayer-id='"+pagelayer_active.el.id+"']");
 			
+			var copy_ele = jQuery((pasteEvent.originalEvent || pasteEvent).clipboardData.getData('pagelayer_ele'));
+			
 			// Check if the any element is copied
-			if(!pagelayer_empty(pagelayer.copy_selected) && pagelayer_can_copy_to(jEle)){
+			if(copy_ele.length > 0 && pagelayer_can_copy_to(jEle)){
+				pagelayer.copy_selected = copy_ele;
 				pagelayer_paste_element("[pagelayer-id='"+pagelayer_active.el.id+"']");
 			}
 			
@@ -3236,3 +3427,120 @@ function pagelayer_add_widget(){
 		add_sc(tag);
 	});
 }
+
+// On editable area image paste handler
+function pagelayer_editable_paste_handler(pasteEvent, pagelayer_ajax_func){
+
+	try {
+		var items = (pasteEvent.originalEvent || pasteEvent).clipboardData.items,
+		mustPreventDefault = false,
+		reader;
+		
+		for (var i = items.length - 1; i >= 0; i -= 1) {
+
+			if (items[i].type.match(/^image\//)) {
+				
+				reader = new FileReader();
+				/* jshint -W083 */
+				reader.onloadend = function (event) {
+					
+					var src = event.target.result;		
+					
+					if( src.indexOf('data:image')  === 0 ) {
+						
+						var block = src.split(";");
+						var contentType = block[0].split(":")[1];
+						var realData = block[1].split(",")[1];
+						var fileName = "image."+contentType.split("/")[1];
+						
+						// Convert it to a blob to upload
+						var blob = pagelayer_b64toBlob(realData, contentType);
+						
+						var formData = new FormData();
+						formData.append('action', 'upload-attachment');
+						formData.append('_ajax_nonce', pagelayer_media_ajax_nonce);
+						formData.append('async-upload', blob, fileName);
+						
+						$.ajax({
+							url:pagelayer_ajax_url,
+							data: formData,// the formData function is available in almost all new browsers.
+							type:"post",
+							contentType:false,
+							processData:false,
+							cache:false,
+							beforeSend: function( xhr ) {
+								if(typeof pagelayer_ajax_func.beforeSend == 'function'){
+									pagelayer_ajax_func.beforeSend(xhr);						
+								}
+							},
+							error:function(err){
+								//console.error(err);
+								alert("Unable to upload image for some reason.");
+							},
+							success:function(response){
+								var obj = jQuery.parseJSON(response);
+								if(typeof pagelayer_ajax_func.success == 'function'){
+									pagelayer_ajax_func.success(obj);						
+								}
+							},
+							complete:function(xhr){
+								if(typeof pagelayer_ajax_func.complete == 'function'){
+									pagelayer_ajax_func.complete(xhr);						
+								}
+							}
+						});
+						
+					}
+				   
+				};
+				/* jshint +W083 */
+				reader.readAsDataURL(items[i].getAsFile());
+				mustPreventDefault = true;
+			}
+		}
+		
+		if(mustPreventDefault){
+			pasteEvent.stopPropagation();
+			pasteEvent.preventDefault();
+		}
+		
+	}catch(err){}
+	
+	return mustPreventDefault;
+	
+}
+
+// Convert base64 to Blob 
+function pagelayer_b64toBlob(b64Data, contentType, sliceSize) {
+	contentType = contentType || '';
+	sliceSize = sliceSize || 512;
+
+	var byteCharacters = atob(b64Data);
+	var byteArrays = [];
+
+	for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+		var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+		var byteNumbers = new Array(slice.length);
+		for (var i = 0; i < slice.length; i++) {
+			byteNumbers[i] = slice.charCodeAt(i);
+		}
+
+		var byteArray = new Uint8Array(byteNumbers);
+
+		byteArrays.push(byteArray);
+	}
+
+	var blob = new Blob(byteArrays, {type: contentType});
+	return blob;
+}
+
+// Function to check if the URL is external
+function pagelayer_parse_theme_vars(img_url){
+	
+	for(x in pagelayer_theme_vars){
+		img_url = img_url.replace(x, pagelayer_theme_vars[x]);
+	}
+	
+	return img_url;
+};

@@ -263,3 +263,53 @@ width: 1px;
 height: 100% !important;
 }
 
+/* Column resize handler icon */
+.pagelayer-resize-handler{
+position:absolute;
+top:50%;
+left:100%;
+transform: translate(-43%, -50%);
+color: #fff;
+font-size: 11px;
+z-index: 99;
+cursor:ew-resize;
+display:none;
+pointer-events: all;
+}
+
+.pagelayer-resize-icon{
+background-color: #905101;
+padding: 3px;
+border-radius: 4px;
+height:30px;
+display:inline-block;
+}
+
+.pagelayer-resize-handler:before{
+content:attr(pre-width);
+background: #4f4f4f;
+position: absolute;
+right: 120%;
+top: 50%;
+transform: translateY(-50%);
+padding: 0 6px;	
+border-radius:100%;
+}
+
+.pagelayer-resize-handler:after{
+content:attr(next-width);
+background: #4f4f4f;
+position: absolute;
+left: 120%;
+top: 50%;
+transform: translateY(-50%);
+padding: 0 6px;	
+border-radius:100%;
+}
+
+/* Hide resize handler icon from last child*/
+.pagelayer-wrap-col:not(:last-child):hover .pagelayer-ele-hover .pagelayer-resize-handler{
+display:block;
+}
+
+/* Column resize handler icon end */

@@ -1,10 +1,10 @@
 === Page Builder: PageLayer - Drag and Drop website builder ===
 Contributors: pagelayer
-Tags: page builder, editor, landing page, drag-and-drop, pagelayer, softaculous, visual editor, wysiwyg, design, maintenance mode, coming soon, under construction, website builder, landing page builder, front-end builder
+Tags: page builder, editor, landing page, drag-and-drop, pagelayer, softaculous, visual editor, wysiwyg, design, maintenance mode, coming soon, under construction, website builder, landing page builder, front-end builder, site-builder
 Requires at least: 4.7
 Tested up to: 5.2
 Requires PHP: 5.2.4
-Stable tag: 0.9.9
+Stable tag: 1.0.0
 License: LGPL v2.1
 License URI: http://www.gnu.org/licenses/lgpl-2.1.html
 
@@ -112,6 +112,22 @@ Do you have questions related to PageLayer ? Use the following links :
 6. **Sections** Pagelayer has a nice grid systems with rows and columns. You can create sections so much easily with Pagelayer
 
 == Changelog ==
+
+= 1.0.0 (September 27, 2019) =
+* [Feature] Added the option to resize columns by dragging the divider between the 2 columns.
+* [Feature] Images can now be pasted from the Clip Board in the Pagelayer Editor. These images will be uploaded and saved.
+* [Feature] You can now copy Pagelayer Elements from one editor tab into another editor tab.
+* [Feature] Image and Icon Box's can now have a link for the whole box.
+* [Feature] Added rotate option to Icon Widget.
+* [Task] Added the option to remove the color from a color setting to reset to default.
+* [Task] Improved the Image filter options setting in Pagelayer editor.
+* [Task] Removed the empty space of the Admin Bar in Pagelayer editor.
+* [Task] Added Screen options for a number of Widget Settings.
+* [Bug Fix] On the blog page if the first post was not a Pagelayer post, the other posts were not rendered. This is fixed.
+* [Bug Fix] On some servers the pagelayer editor JS used to fail to load because of the URL having base64 as a file name.
+* [Bug Fix] If a Page / Post did not have a title, Pagelayer Live Editor used to fail. This is fixed.
+* [Bug Fix] The Color Picker had a z-index lower than the rich text editor. This is fixed.
+* [Bug Fix] The Divider widget had extra spacing which is now fixed.
 
 = 0.9.9 (September 10, 2019) =
 * [Feature] Added inline editing so you can now edit text / headers in the editor itself. 

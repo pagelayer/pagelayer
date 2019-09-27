@@ -1063,7 +1063,7 @@ function pagelayer_elp_image(row, prop){
 				// External URL
 				if('props' in state){
 					
-					id = url = state.props.attributes.url;
+					id = url = pagelayer_parse_theme_vars(state.props.attributes.url);
 				
 				// Internal from gallery
 				}else{
@@ -1294,7 +1294,7 @@ function pagelayer_elp_video(row, prop){
 				// External URL
 				if('props' in state){
 					
-					id = url = state.props.attributes.url;
+					id = url = pagelayer_parse_theme_vars(state.props.attributes.url);
 				
 				// Internal from gallery
 				}else{
@@ -1369,7 +1369,7 @@ function pagelayer_elp_audio(row, prop){
 				// External URL
 				if('props' in state){
 					
-					id = url = state.props.attributes.url;
+					id = url = pagelayer_parse_theme_vars(state.props.attributes.url);
 				
 				// Internal from gallery
 				}else{
@@ -1442,7 +1442,7 @@ function pagelayer_elp_media(row, prop){
 				// External URL
 				if('props' in state){
 					
-					id = url = state.props.attributes.url;
+					id = url = pagelayer_parse_theme_vars(state.props.attributes.url);
 				
 				// Internal from gallery
 				}else{
@@ -1791,6 +1791,7 @@ function pagelayer_elp_color(row, prop){
 	
 	var div = '<div class="pagelayer-elp-color-div">'+
 		'<div class="pagelayer-elp-color-preview"></div>'+
+		'<span class="pagelayer-elp-remove-color pagelayer-prop-action"><i class="fa fa-times" /></span>'+
 	'</div>';
 	
 	row.append(div);
@@ -1806,9 +1807,19 @@ function pagelayer_elp_color(row, prop){
 	
 	// Handle selected color
 	picker.onChange = function(color) {
-		row.find('.pagelayer-elp-color-preview').css('background', color.rgbaString);
+		
+		row.find('.pagelayer-elp-color-preview').removeClass('pagelayer-blank-preview').css('background', color.rgbaString);
 		_pagelayer_set_atts(row, color.hex);// Save and Render
 	};
+	
+	picker.onOpen = picker.onChange;
+	
+	row.find('.pagelayer-elp-remove-color').on('click', function(event){
+		event.stopPropagation();
+		picker.setColor(prop.default, true);
+		row.find('.pagelayer-elp-color-preview').addClass('pagelayer-blank-preview');
+		_pagelayer_set_atts(row, ' ');// Save and Render
+	})
 	
 }
 

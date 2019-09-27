@@ -1583,5 +1583,7 @@
 	"container_position" : "Container Position",
 	"fixed_right" : "Fixed On Right",
 	"fixed_left" : "Fixed On Left",
-	"container_style" : "Container Style"
+	"container_style" : "Container Style",
+	"rotate_icon" : "Rotate Icon",
+	"url" : "URL"
 }
