@@ -533,10 +533,17 @@ function pagelayer_add_shortcode($tag, $params = array()){
 		'ele_bg_styles' => __pl('ele_bg_styles'),
 		'ele_styles' => __pl('ele_styles'),
 		'border_styles' => __pl('border_styles'),
+		'position_styles' => __pl('position_styles'),
 		'animation_styles' => __pl('animation_styles'),
 		'responsive_styles' => __pl('responsive_styles'),
 		'custom_styles' => __pl('custom_styles'),
 	];
+	
+	if(!empty($params['skip_props_cat'])){
+		foreach($params['skip_props_cat'] as $k => $v){
+			unset($params['options'][$v]);
+		}
+	}
 
 	// Are the settings there which hold the params ?
 	if(empty($params['settings'])){
@@ -636,6 +643,8 @@ function pagelayer_image($id){
 	}
 
 	$ret['url'] = $ret['full-url'];
+	
+	$ret = apply_filters('pagelayer_image', $ret);
 
 	return $ret;
 
@@ -677,6 +686,8 @@ function pagelayer_attachment($id){
 		$ret['url'] = wp_get_attachment_url($id);
 
 	}
+	
+	$ret = apply_filters('pagelayer_attachment', $ret);
 
 	return $ret;
 
@@ -822,9 +833,17 @@ margin: 4px 2px;
 transition-duration: 0.4s;
 cursor: pointer;
 }
-.pagelayer_promo_button:focus{
+.pagelayer_promo_button:focus,
+.pagelayer_promo_button:hover{
 border: none;
 color: white;
+box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 9px 25px 0 rgba(0,0,0,0.19);
+color: white;
+}
+.pagelayer_promo_buy {
+color: white;
+padding: 8px 12px;
+font-size: 14px;
 }
 .pagelayer_promo_button1 {
 color: white;
@@ -832,33 +851,19 @@ background-color: #4CAF50;
 border:3px solid #4CAF50;
 }
 .pagelayer_promo_button1:hover {
-box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 9px 25px 0 rgba(0,0,0,0.19);
-color: white;
 border:3px solid #4CAF50;
 }
 .pagelayer_promo_button2 {
 color: white;
 background-color: #0085ba;
 }
-.pagelayer_promo_button2:hover {
-box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 9px 25px 0 rgba(0,0,0,0.19);
-color: white;
-}
 .pagelayer_promo_button3 {
 color: white;
 background-color: #365899;
 }
-.pagelayer_promo_button3:hover {
-box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 9px 25px 0 rgba(0,0,0,0.19);
-color: white;
-}
 .pagelayer_promo_button4 {
 color: white;
 background-color: rgb(66, 184, 221);
-}
-.pagelayer_promo_button4:hover {
-box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 9px 25px 0 rgba(0,0,0,0.19);
-color: white;
 }
 .pagelayer_promo-close{
 float:right;
@@ -894,12 +899,19 @@ color: red;
 	echo '
 	<p style="font-size:13px">We are glad you like <a href="'.$opts['website'].'"><b>Pagelayer</b></a> and have been using it since the past few days. It is time to take the next step !</p>
 	<p>
+		'.(empty($opts['pro_url']) ? '' : '<a class="pagelayer_promo_button pagelayer_promo_buy" target="_blank" href="'.$opts['pro_url'].'">Buy Pagelayer Pro</a>').'
 		'.(empty($opts['rating']) ? '' : '<a class="pagelayer_promo_button pagelayer_promo_button2" target="_blank" href="'.$opts['rating'].'">Rate it 5★\'s</a>').'
 		'.(empty($opts['facebook']) ? '' : '<a class="pagelayer_promo_button pagelayer_promo_button3" target="_blank" href="'.$opts['facebook'].'"><span class="dashicons dashicons-thumbs-up"></span> Facebook</a>').'
 		'.(empty($opts['twitter']) ? '' : '<a class="pagelayer_promo_button pagelayer_promo_button4" target="_blank" href="'.$opts['twitter'].'"><span class="dashicons dashicons-twitter"></span> Tweet</a>').'
 		'.(empty($opts['website']) ? '' : '<a class="pagelayer_promo_button pagelayer_promo_button4" target="_blank" href="'.$opts['website'].'">Visit our website</a>').'
 	</p>
-</div>';
+	<p style="font-size:13px"><a href="'.$opts['pro_url'].'"><b>Pagelayer Pro</b></a> has many more features like 60+ widgets, 400+ sections, Theme Builder, WooCommerce Builder, Theme Creator and Exporter, Form Builder, Popup Builder, etc.';
+	
+	if(date('Ymd') <= 20200331){
+		echo '<br><span style="font-size: 14px"><b>Promotional Offer</b></span> : If you buy <a href="'.$opts['pro_url'].'"><b>Pagelayer Pro</b></a> before <b>31st March, 2020</b> then you will get an additional year free and your license will expire on <b>31st March, 2022</b>.';
+	}
+	
+echo '</p></div>';
 
 }
 
@@ -1191,10 +1203,14 @@ function pagelayer_posts($params, $args = []){
 		if(isset($params['tags'])){
 			$tags = get_the_tags();
 			$singletag = '';
-			foreach( $tags as $tag ){
-				$singletag .= '<a href="' . get_tag_link( $tag->term_id ) . '">'. $tag->name .'</a>';
+			if(!empty($tags)){
+				foreach( $tags as $tag ){
+					$singletag .= '<a href="' . get_tag_link( $tag->term_id ) . '">'. $tag->name .'</a>';
+				}
+				if(!empty($singletag)){
+					$data .= '<span class="pagelayer-wposts-tags">'.$singletag.'</span>'.$sep;
+				}
 			}
-			$data .= '<span class="pagelayer-wposts-tags">'.$singletag.'</span>'.$sep;
 			
 		}
 		if(isset($params['comments'])){
@@ -1355,15 +1371,18 @@ function pagelayer_create_sel_options( $opt_array , $selected = ''){
 		
 		// Groups
 		}else{
-			$options .= '<optgroup label="'. $x .'">';
 			
-			foreach($opt_array[$x] as $y => $gval){
-				$options .= pagelayer_sel_option($y, $gval, $selected);
+			// If Label is there, then its a normal option
+			if(array_key_exists('label', $opt_array[$x])){
+				$options .= pagelayer_sel_option($x, $opt_array[$x]['label'], $selected);
+			
+			// Optgroups
+			} else{
+				$options .= '<optgroup label="'. $x .'">';
+				$options .= pagelayer_create_sel_options($opt_array[$x], $selected);
+				$options .= '</optgroup>';
 			}
-			
-			$options .= '</optgroup>';
 		}
-		
 	}
 	
 	return $options;	
@@ -1372,6 +1391,30 @@ function pagelayer_create_sel_options( $opt_array , $selected = ''){
 // Create option HTML
 function pagelayer_sel_option($val, $lang, $selected){
 	return '<option value="'. $val .'" '. (($val != $selected) ? '' : 'selected="selected"') .' >'. $lang .'</option>';
+}
+
+// Get values from multi-dimensional array by key 
+function pagelayer_multi_array_search(&$array, $key){
+	
+	if(!is_array($array)){
+		return false;
+	}
+	
+	foreach ($array as $k => $v) {
+	
+		if($k == $key){
+			return $v;
+		}
+	
+		if (is_array($v)) {
+			$found = pagelayer_multi_array_search($v, $key);
+			if(!empty($found)){
+				return $found;
+			}
+		}
+	}
+	
+	return false;
 }
 
 function pagelayer_get_post_term(){
@@ -1410,6 +1453,34 @@ function pagelayer_get_post_author(){
 	}
 	//pagelayer_print($authors->get_results());die();
 	return $ret;
+}
+
+// Gets the registered post types
+function pagelayer_get_public_post_types( $args = [] ) {
+	
+	global $pagelayer;
+	
+	$post_type_args = [
+		'public' => true,
+	];
+	
+	$post_type_args = wp_parse_args( $post_type_args, $args );
+	
+	$_post_types = get_post_types( $post_type_args, 'objects' );
+
+	$post_types = array();
+
+	foreach ( $_post_types as $post_type => $object ) {
+		
+		if($post_type == $pagelayer->builder['name']){
+			continue;
+		}
+		
+		$post_types[ $post_type ] = $object->label;
+	}
+	//print_r($post_types);
+	
+	return $post_types;
 }
 
 // Simply echo and dir
@@ -1459,6 +1530,126 @@ function pagelayer_export_content($content){
 	
 	$content = preg_replace('/http(s?):\/\/'.preg_quote($theme_url, '/').'/is', '{{theme_url}}', $content);
 	
+	// Apply a filter
+	$content = apply_filters('pagelayer_export_content', $content);
+	
 	return $content;
+	
+}
+
+// Insert a post which is a Pagelayer Post
+function pagelayer_insert_content($post, &$ret){
+	
+	// Replace Vars
+	$template_vars = pagelayer_template_vars();
+	foreach($template_vars as $key => $val){
+		$post['post_content'] = str_replace($key, $val, $post['post_content']);
+	}
+	
+	//pagelayer_print($post);die();
+	
+	// Add slashes for safe insert
+	$post['post_content'] = wp_slash($post['post_content']);
+	
+	// Now insert / update the post
+	$ret = wp_insert_post($post);
+
+	// Did we save the post ?
+	if(empty($ret) || is_wp_error($ret)){
+		return false;
+	}
+
+	// Convert to pagelayer accessed post
+	if(!add_post_meta($ret, 'pagelayer-data', time(), true)){
+		update_post_meta($ret, 'pagelayer-data', time());
+	}
+	
+	return $ret;
+
+}
+
+// Gets the list of enabled fonts
+function pagelayer_enabled_icons(){
+		
+	$stored_icons = get_option('pagelayer_icons_set');
+	if(empty($stored_icons)){
+		update_option('pagelayer_icons_set', ['font-awesome5']);
+		$stored_icons = get_option('pagelayer_icons_set');
+	}
+	
+	return $stored_icons;
+	
+}
+
+// Install the Pro version
+function pagelayer_install_pro(){
+	
+	global $pagelayer;
+	
+	// Include the necessary stuff
+	include_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
+
+	// Includes necessary for Plugin_Upgrader and Plugin_Installer_Skin
+	include_once( ABSPATH . 'wp-admin/includes/file.php' );
+	include_once( ABSPATH . 'wp-admin/includes/misc.php' );
+	include_once( ABSPATH . 'wp-admin/includes/class-wp-upgrader.php' );
+
+	// Filter to prevent the activate text
+	add_filter('install_plugin_complete_actions', 'pagelayer_install_plugin_complete_actions', 10, 3);
+
+	$upgrader = new Plugin_Upgrader( new Plugin_Installer_Skin(  ) );
+	$installed = $upgrader->install(PAGELAYER_API.'download.php?version=latest&license='.$pagelayer->license['license']);
+	
+	if ( !is_wp_error( $installed ) && $installed ) {
+		echo 'Activating Pagelayer Pro !';
+		$activate = activate_plugin(PAGELAYER_PRO_BASE);
+		
+		if ( is_null($activate) ) {
+			echo '<div id="message" class="updated"><p>'. __('Done! Pagelayer Pro is now installed and activated.', 'pagelayer'). '</p></div><br />';
+			echo '<br><br><b>Done! Pagelayer Pro is now installed and activated.</b>';
+		}
+	}
+	
+	return $installed;
+	
+}
+
+// Prevent pro activate text for installer
+function pagelayer_install_plugin_complete_actions($install_actions, $api, $plugin_file){
+	
+	if($plugin_file == PAGELAYER_PRO_BASE){
+		return array();
+	}
+	
+	return $install_actions;
+}
+
+// Load license data
+function pagelayer_load_license(){
+	
+	global $pagelayer;
+	
+	// Load license
+	$pagelayer->license = get_option('pagelayer_license');
+	
+	// Update license details as well
+	if(!empty($pagelayer->license) && (time() - @$pagelayer->license['last_update']) >= 86400){
+		
+		$resp = wp_remote_get(PAGELAYER_API.'license.php?license='.$pagelayer->license['license']);
+		
+		// Did we get a response ?
+		if(is_array($resp)){
+			
+			$tosave = json_decode($resp['body'], true);
+			
+			// Is it the license ?
+			if(!empty($tosave['license'])){
+				$tosave['last_update'] = time();
+				update_option('pagelayer_license', $tosave);
+			}
+			
+		}
+		
+	}
 	
 }

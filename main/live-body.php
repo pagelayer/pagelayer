@@ -32,48 +32,70 @@ global $post;
 echo '
 <html>
 <head>
-	<link rel="stylesheet" href="'.PAGELAYER_CSS.'/givecss.php?give=pagelayer-editor.css,trumbowyg.min.css&ver='.PAGELAYER_VERSION.'">
-	<link rel="stylesheet" href="'.PAGELAYER_CSS.'/font-awesome.min.css?ver='.PAGELAYER_VERSION.'">
+	<link rel="stylesheet" href="'.PAGELAYER_CSS.'/givecss.php?give=pagelayer-editor.css,trumbowyg.min.css,pagelayer-icons.css&ver='.PAGELAYER_VERSION.'">';
+	
+	$icons = pagelayer_enabled_icons();
+	
+	// Load all icons
+	foreach($icons as $icon){
+		echo '<link rel="stylesheet" href="'.PAGELAYER_CSS.'/givecss.php?give='.$icon.'.min.css&ver='.PAGELAYER_VERSION.'">';
+	}
+	
+	do_action('pagelayer_live_body_head');
+
+echo '
 </head>
 
 <body class="pagelayer-normalize pagelayer-body">
-<div id="trumbowyg-icons">
-	'.file_get_contents(PAGELAYER_DIR.'/fonts/trumbowyg.svg').'
-</div>
-<table class="pagelayer-normalize" cellpadding="0" cellspacing="0">
+<table class="pagelayer-normalize pagelayer-body-table" cellpadding="0" cellspacing="0">
 <tr>
 	<td valign="top" width="270" class="pagelayer-leftbar-table">
 		<table class="pagelayer-normalize" cellpadding="0" cellspacing="0">
+			<tr class="pagelayer-close-bar">
+				<td>
+					<div class="pagelayer-close-bar-icons">
+						<i class="pagelayer-leftbar-minimize fa fa-minus"></i>
+						<i class="pagelayer-leftbar-close fa fa-close"></i>
+					</div>
+				</td>
+			</tr>
 			<tr height="45">
 				<td class="pagelayer-topbar-holder" valign="middle" align="center">
 					<div class="pagelayer-elpd-header" style="display:none">
-						<div class="pagelayer-elpd-close"><i class="fa fa-times" aria-hidden="true"></i></div>
+						<div class="pagelayer-elpd-close"><i class="pli pli-cross" aria-hidden="true"></i></div>
 						<div class="pagelayer-elpd-title">Edit</div>
 					</div>
 					<div class="pagelayer-logo">
-						<img src="'.PAGELAYER_URL.'/images/pagelayer-logo-40.png" width="32" /><span class="pagelayer-logo-text">pagelayer</span>
-						<span class="pagelayer-settings-icon fa fa-cog" aria-hidden="true"></span>
+						<span class="pagelayer-options-icon pli pli-menu" style="display:none"></span>
+						<img src="'.PAGELAYER_LOGO.'" width="32" /><span class="pagelayer-logo-text">'.PAGELAYER_BRAND_TEXT.'</span>
+						<span class="pagelayer-settings-icon pli pli-service" aria-hidden="true"></span>
 					</div>
 				</td>
 			</tr>
 			<tr height="*" valign="top">
 				<td style="position: relative;"><div class="pagelayer-leftbar-holder"></div></td>
 			</tr>
-			<tr height="35">
-				<td class="pagelayer-bottombar-holder"></td>
+			<tr height="35" class="pagelayer-bottombar-row">
+				<td><div class="pagelayer-bottombar-holder"></div></td>
 			</tr>
 		</table>
-	</td>
-	<td valign="middle" class="pagelayer-leftbar-toggle-h">
 		<div class="pagelayer-leftbar-toggle">&lsaquo;</div>
 	</td>
 	<td class="pagelayer-iframe">
+		<div class="pagelayer-iframe-top-bar">';
+		do_action('pagelayer_iframe_top_bar');
+echo '
+		</div>
 		<div class="pagelayer-iframe-holder">
-			<iframe src="'.(pagelayer_shortlink(0).'&pagelayer-iframe=1&'.$_SERVER['QUERY_STRING']).'" class="pagelayer-normalize"></iframe>
+			<iframe src="'.(pagelayer_shortlink(0).'&pagelayer-iframe=1&'.$_SERVER['QUERY_STRING']).'" class="pagelayer-normalize" id="pagelayer-iframe"></iframe>
 		</div>
 	</td>
 </tr>
 </table>
+
+<script>
+var pagelayer_iframe_cw = document.getElementById("pagelayer-iframe").contentWindow;
+</script>
 
 </body>';
 

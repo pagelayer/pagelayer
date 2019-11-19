@@ -46,9 +46,12 @@ class PageLayer_LiveEditor{
 
 		// Add the content handler
 		add_filter('the_content', array($this, 'the_content'));
-
+		
+		// Build the Shortcodes MD5 for cache
+		$scmd5 = md5(json_encode($pagelayer->shortcodes).json_encode($pagelayer->groups).json_encode($pagelayer->styles));
+		
 		// Enqueue our Editor's JS
-		wp_register_script('pagelayer-editor', PAGELAYER_JS.'/givejs.php?give=pagelayer-editor.js,widgets.js,'.(defined('PAGELAYER_PREMIUM') ? 'premium.js,' : '').'properties.js,base-64.js,slimscroll.js,vanilla-picker.min.js,trumbowyg.js,trumbowyg.fontfamily.js,trumbowyg-pagelayer.js,trumbowyg.fontsize.min.js,pen.js', array('jquery'), PAGELAYER_VERSION);
+		wp_register_script('pagelayer-editor', admin_url( 'admin-ajax.php?action=pagelayer_givejs' ).'&give=pagelayer-editor.js,widgets.js,'.(defined('PAGELAYER_PREMIUM') ? 'premium.js,' : '').'properties.js,base-64.js,slimscroll.js,vanilla-picker.min.js,trumbowyg.js,trumbowyg.fontfamily.js,trumbowyg-pagelayer.js,trumbowyg.fontsize.min.js,pen.js,tlite.min.js&pagelayer_nonce=1&scmd5='.$scmd5, array('jquery'), PAGELAYER_VERSION);
 		wp_enqueue_script('pagelayer-editor');
 
 		// Enqueue the Editor's CSS
@@ -89,17 +92,22 @@ class PageLayer_LiveEditor{
 
 		global $pagelayer, $post, $wp_query;
 		
+		// Export the post props
+		$_post = clone $post;
+		unset($_post->post_content);
+		
 		$returnURL = (!is_page($post->ID) ? admin_url('edit.php') : admin_url('edit.php?post_type=page') );
 		
 		echo '
 <script type="text/javascript">
-pagelayer_ver = "'.PAGELAYER_VERSION .'";
-pagelayer_shortcodes = '.json_encode($pagelayer->shortcodes).';
-pagelayer_styles = '.json_encode($pagelayer->styles).';
-pagelayer_groups = '.json_encode($pagelayer->groups).';
-pagelayer_ajax_url = "'.admin_url( 'admin-ajax.php' ).'?";
+pagelayer_ver = "'.PAGELAYER_VERSION.'";
+pagelayer_pro = '.(int)defined('PAGELAYER_PREMIUM').';
+pagelayer_pro_url = "'.PAGELAYER_PRO_URL.'";
+pagelayer_api_url = "'.PAGELAYER_API.'";
+pagelayer_ajax_url = "'.admin_url( 'admin-ajax.php' ).'?&";
 pagelayer_ajax_nonce = "'.wp_create_nonce('pagelayer_ajax').'";
 pagelayer_media_ajax_nonce = "'.wp_create_nonce('media-form').'";
+pagelayer_preview_nonce = "'. wp_create_nonce( 'post_preview_' . $post->ID ).'";
 pagelayer_url = "'.PAGELAYER_URL.'";
 pagelayer_postID = "'.$post->ID.'";
 pagelayer_post_permalink = "'.get_permalink($post->ID).'";
@@ -110,11 +118,17 @@ pagelayer_theme_vars = '.json_encode( pagelayer_template_vars() ).';
 pagelayer_revision_obj = '.json_encode( pagelayer_get_post_revision_by_id( $post->ID ) ).';
 pagelayer_author = '.json_encode(pagelayer_author_data($post->ID)).';
 pagelayer_site_logo = '.json_encode(pagelayer_site_logo()).';
-pagelayer_postTitle = "'. ( isset( $post->post_title ) ? $post->post_title : '' ) .'";
 pagelayer_support_FI = "'. ( current_theme_supports('post-thumbnails') )  .'";	
 pagelayer_editable = ".'.(!empty($pagelayer->template_editor) ? $pagelayer->template_editor : 'entry-content').'";
 pagelayer_wp_query = '. json_encode($wp_query->query_vars) .';
+pagelayer_post =  '. @json_encode($_post) .';
+pagelayer_loaded_icons =  '.json_encode(pagelayer_enabled_icons()).';
+pagelayer_shortcodes.pl_post_props.params.post_title.default = "'.pagelayer_escapeHTML($post->post_title).'";
+pagelayer_shortcodes.pl_post_props.params.post_name.default = "'.pagelayer_escapeHTML($post->post_name).'";
 </script>';
+		
+		do_action('pagelayer_editor_wp_head');
+
 	}
 
 	// Footer function to add certain things

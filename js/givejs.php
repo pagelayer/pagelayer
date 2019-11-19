@@ -38,6 +38,7 @@ $files = array(
 		'trumbowyg.fontsize.min.js',
 		'trumbowyg-pagelayer.js',
 		'pen.js',
+		'tlite.min.js',
 		// Enduser JS
 		'imagesloaded.min.js',
 		'nivo-lightbox.min.js',
@@ -87,6 +88,13 @@ header("Content-type: text/javascript; charset: UTF-8");
 
 // Set a zero Mtime
 $filetime = filemtime($self_path.'/pagelayer-editor.js');
+
+// Are we to also serve Shortcodes ?
+if(!empty($pagelayer->shortcodes)){
+	$data .= 'pagelayer_shortcodes = '.json_encode($pagelayer->shortcodes).';'."\n\n";
+	$data .= 'pagelayer_styles = '.json_encode($pagelayer->styles).';'."\n\n";
+	$data .= 'pagelayer_groups = '.json_encode($pagelayer->groups).';'."\n\n";
+}
 
 // Cache Control
 header("Cache-Control: must-revalidate");

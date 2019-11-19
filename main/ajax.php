@@ -141,7 +141,30 @@ function pagelayer_save_content(){
 					'ID' => $postID,
 					'post_content' => $content,
 				);
-
+		
+		// Any properties ?
+		if(!empty($_REQUEST['page_props'])){
+			
+			$allowed = ['post_title', 'post_name', 'post_excerpt', 'post_status'];
+			
+			foreach($allowed as $k){
+				if(!empty($_REQUEST['page_props'][$k])){
+					$post[$k] = $_REQUEST['page_props'][$k];
+				}
+			}
+			
+			$_REQUEST['page_props']['featured_image'] = (int) $_REQUEST['page_props']['featured_image'];
+			if(!empty($_REQUEST['page_props']['featured_image'])){
+				set_post_thumbnail($postID, $_REQUEST['page_props']['featured_image']);
+			}else{
+				delete_post_thumbnail($postID);
+			}
+			
+		}
+	
+		// Apply a filter
+		$post = apply_filters('pagelayer_save_content', $post);
+		
 		// Update the post into the database
 		wp_update_post($post);
 
@@ -183,6 +206,61 @@ function pagelayer_do_shortcodes(){
 	
 	wp_die();
 	
+}
+
+// Give the JS
+add_action('wp_ajax_pagelayer_givejs', 'pagelayer_givejs');
+function pagelayer_givejs(){
+	
+	global $pagelayer;
+	
+	// WordPress adds the Expires header in all AJAX calls. We need to remove it for cache to work
+	header_remove("Expires");
+	header_remove("Cache-Control");
+	
+	// Load shortcodes
+	pagelayer_load_shortcodes();
+	
+	// Pagelayer Template Loading Mechanism
+	include_once(PAGELAYER_DIR.'/js/givejs.php');
+	
+	exit();
+	
+}
+
+// Shortcodes Widget Handler
+add_action('wp_ajax_pagelayer_get_section_shortcodes', 'pagelayer_get_section_shortcodes');
+function pagelayer_get_section_shortcodes(){
+
+	// Some AJAX security
+	check_ajax_referer('pagelayer_ajax', 'pagelayer_nonce');
+	
+	$data = '';
+	if(isset($_REQUEST['pagelayer_section_id'])){
+		$data = json_decode(file_get_contents(PAGELAYER_API.'/library.php?give_id='.$_REQUEST['pagelayer_section_id']), true);
+	}
+	
+	if(isset($_REQUEST['postID'])){
+		$post_id = (int) $_REQUEST['postID'];
+		
+		if(!empty($post_id)){
+			$post = get_post( $post_id );
+			// Need to make the reviews post global 
+			if ( !empty( $post ) ) {
+				$GLOBALS['post'] = $post;
+			}
+		}
+	}
+
+	// Load shortcodes
+	pagelayer_load_shortcodes();
+	
+	if(!empty($data['code'])){
+		$data['code'] = do_shortcode($data['code']);
+	}
+	
+	pagelayer_json_output($data);
+
 }
 
 // Get the Site Title
@@ -256,12 +334,42 @@ function pagelayer_fetch_primary_menu(){
 		echo wp_nav_menu([
 			'menu'   => wp_get_nav_menu_object($_POST['nav_list']),
 			'menu_id' => $_POST["nav_list"],
+			'menu_class' => 'pagelayer-wp_menu-ul',
 			//'theme_location' => 'primary',
-			//'menu_class'	 => 'primary-menu',
 		]);
 	}
 	
 	wp_die();
+}
+
+// Save post revision 
+add_action('wp_ajax_pagelayer_create_post_autosave', 'pagelayer_create_post_autosave');
+function pagelayer_create_post_autosave(){
+
+	// Some AJAX security
+	check_ajax_referer('pagelayer_ajax', 'pagelayer_nonce');
+
+	$postID = (int) $_GET['postID'];
+	$post_revisions = array();
+	
+	$content = $_REQUEST['pagelayer_post_content'];
+	
+	if(empty($postID)){
+		$post_revisions['error'] =  __pl('invalid_post_id');
+	}else{
+		
+		$post = array(
+			'post_ID' => $postID,
+			'post_content' => $content,
+		);
+		
+		$post_revisions['id'] = wp_create_post_autosave($post);
+	}
+	
+	$post_revisions['url'] = get_preview_post_link($postID);
+	
+	pagelayer_json_output($post_revisions);
+	
 }
 
 // Get post revision 
@@ -1172,6 +1280,7 @@ function pagelayer_export_template(){
 		file_put_contents($theme_dir.'/'.$v->post_name.'.pgl', pagelayer_export_content($v->post_content));
 		$conf[$v->post_name] = [
 			'type' => get_post_meta($v->ID, 'pagelayer_template_type', true),
+			'title' => $v->post_title,
 			'conditions' => get_post_meta($v->ID, 'pagelayer_template_conditions', true),
 		];
 	}
@@ -1220,45 +1329,4 @@ function pagelayer_export_template(){
 	// Output and die
 	pagelayer_json_output($done);
 	
-}
-
-// Export the template
-add_action('wp_ajax_pagelayer_save_settings', 'pagelayer_save_settings');
-function pagelayer_save_settings(){
-	
-	// Some AJAX security
-	check_ajax_referer('pagelayer_ajax', 'pagelayer_nonce');
-	
-	if(!current_user_can('edit_posts')){
-		$msg['error'] =  __pl('current_user_can_not');
-		pagelayer_json_output($msg);
-	}
-	
-	$postID = (int) $_GET['postID'];
-
-	if(empty($postID)){
-		$msg['error'] =  __pl('invalid_post_id');
-		pagelayer_json_output($msg);
-	}
-	
-	// Check if the post exists
-	
-	if(!empty($_POST['post_title'])){
-		
-		$post = array(
-					'ID' => $postID,
-					'post_title' => $_POST['post_title'],
-				);
-
-		// Update the post into the database
-		$ret = wp_update_post($post);
-
-		if (is_wp_error($ret)) {
-			$msg['error'] =  __pl('post_setting_update_err');
-		}else{
-			$msg['success'] =  __pl('post_setting_update_success');
-		}
-	}
-
-	pagelayer_json_output($msg);
 }

@@ -27,28 +27,48 @@ jQuery(window).resize(function(){
 		
 // Render for row
 function pagelayer_render_pl_row(el){
+	
+	var img_urls = !pagelayer_empty(el.tmp['bg_slider-urls']) ? JSON.parse(el.tmp['bg_slider-urls']) : [];
+	el.atts['slider'] = '';
+	if(!pagelayer_empty(img_urls)){
+		for(var x in img_urls){
+			el.atts['slider'] += '<div class="pagelayer-bgimg-slide" style="background-image:url('+img_urls[x]+')"></div>'; 
+		}
+	}
+	
 	pagelayer_bg_video(el);	
 }
 
 // Render for col
 function pagelayer_render_pl_col(el){
 	
+	var img_urls = !pagelayer_empty(el.tmp['bg_slider-urls']) ? JSON.parse(el.tmp['bg_slider-urls']) : [];
+	el.atts['slider'] = '';
+	if(!pagelayer_empty(img_urls)){
+		for(var x in img_urls){
+			el.atts['slider'] += '<div class="pagelayer-bgimg-slide" style="background-image:url('+img_urls[x]+')"></div>'; 
+		}
+	}
+	
+	// We need the parent of type pagelayer-wrap-col
+	var par = el.$.parent('.pagelayer-wrap-col');
+	
 	// Apply to wrapper
 	if(!pagelayer_empty(el.atts['col'])){
 		
 		for(var x=1; x<=12; x++){
-			if(el.$.parent().hasClass('pagelayer-col-'+x)){
-				el.$.parent().removeClass('pagelayer-col-'+x);
+			if(par.hasClass('pagelayer-col-'+x)){
+				par.removeClass('pagelayer-col-'+x);
 				break;
 			}
 		}
 
-		el.$.parent().addClass('pagelayer-col-'+el.atts['col']);
-		el.$.parent().css('width', '');
+		par.addClass('pagelayer-col-'+el.atts['col']);
+		par.css('width', '');
 	}
 	
 	if(el.atts['col_width']){
-		el.$.parent().css('width', el.atts['col_width']+'%');
+		par.css('width', el.atts['col_width']+'%');
 	}
 	
 	pagelayer_bg_video(el);
@@ -139,6 +159,10 @@ function pagelayer_render_end_pl_row(el){
 		pagelayer_pl_row_parallax(jQuery(this));
 	});
 	
+	el.$.find('.pagelayer-bgimg-slider').each(function(){
+		pagelayer_pl_row_slider(jQuery(this));
+	});
+	
 	// Row shape
 	if('row_shape_type_top' in el.atts){
 		pagelayer_render_row_shape(el, 'top')
@@ -185,6 +209,10 @@ function pagelayer_render_end_pl_col(el){
 	
 	el.$.find('.pagelayer-parallax-window img').each(function(){
 		pagelayer_pl_row_parallax(jQuery(this));
+	});
+	
+	el.$.find('.pagelayer-bgimg-slider').each(function(){
+		pagelayer_pl_row_slider(jQuery(this));
 	});
 	
 }
@@ -275,6 +303,21 @@ function pagelayer_render_pl_service(el){
 	el.atts['func_image'] = el.tmp['service_image-'+el.atts['service_image_size']+'-url'] || el.tmp['service_image-url'];
 	el.atts['func_image'] = el.atts['func_image'] || el.atts['service_image'];
 	
+}
+
+function pagelayer_social(jEle,sel){
+	var holder = jEle.find(sel);
+	var icon = holder.data('icon');
+	//alert(icon);
+	var icon_splited = icon.split(' fa-');
+	//console.log(icon_splited);
+	holder.addClass('pagelayer-'+icon_splited[1]);
+	
+}
+
+// Render the social icon
+function pagelayer_render_end_pl_social(el){
+	pagelayer_social(el.$, '.pagelayer-icon-holder');
 }
 
 // Render the counter

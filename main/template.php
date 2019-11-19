@@ -97,7 +97,7 @@ function pagelayer_template_redirect(){
 	
 	}
 	
-	// If post template was not there, search for a header PGL file
+	// If post template was not there, search for a footer PGL file
 	// Also when we are editing, we can render footer only when its a pagelayer-content edit
 	if(	
 		(empty($pagelayer->template_editor) || @$pagelayer->template_editor == 'pagelayer-content')
@@ -109,6 +109,12 @@ function pagelayer_template_redirect(){
 	// If we do have a header but not the footer or we have the footer and no header,
 	// then we need to make sure to blank the other
 	if(!empty($pagelayer->template_header) || !empty($pagelayer->template_footer)){
+		
+		// If the post being shown to the user is not a Pagelayer post, then we need to enqueue forcefully
+		if(empty($pagelayer->cache['enqueue_frontend'])){
+			pagelayer_enqueue_frontend(true);
+		}
+		
 		add_action('get_header', 'pagelayer_get_header');
 		add_action('get_footer', 'pagelayer_get_footer');
 	}
@@ -211,102 +217,55 @@ function pagelayer_template_check_conditons($ids = [], $file = false){
 			foreach( $pagelayer_template_conditions as $condi ){
 				
 				$check = 0;
-								
+				
+				// Get template array
+				$tmpl_array = pagelayer_multi_array_search( $pagelayer->builder['dispay_on'], $condi['template'] );
+				
+				// Get sub_template array
+				$sub_tmpl_array =  pagelayer_multi_array_search( $pagelayer->builder[$condi['template'].'_templates'], $condi['sub_template']);
+				
 				// If the condition name is general priority
-				if(empty($condi['template'])){ 
-					$check = 1;
+				if(empty($condi['template'])){
 					
-					// Set General Property 1
-					if($priority < 1){ $priority = 1; }				
+					$check = 1;
+					$set_prio = 1;  // Set General Property 1
 					
 				// If the condition name is singular
-				}elseif( $condi['template'] == 'singular' && (  is_singular() || is_404() ) ){
+				}elseif( array_key_exists('check_conditions', $tmpl_array) ){
+					
+					// If the condition callback is false, continue the loop
+					if( is_callable($tmpl_array['check_conditions']) ){
+						if( empty($tmpl_array['check_conditions']($condi)) ){
+							continue;
+						}
+					}elseif( empty($tmpl_array['check_conditions']) ){
+						continue;
+					}
 					
 					// Check sub_template conditions
 					if( empty($condi['sub_template']) ){
 						$check = 1;
+						$set_prio = 2;  // Set all sub_template Property 2
+					}elseif( array_key_exists('check_conditions', $sub_tmpl_array ) ){
 						
-						// Set name Property 2
-						if($priority < 2){ $priority = 2; }
-						
-					}else{
-						$sub_check = 'is_'.$condi['sub_template'];
-						$id_check = 0;
-						
-						if( $condi['sub_template'] == 'post' ){
-							$sub_check = 'is_single';
-						}elseif( is_numeric(strpos($condi['sub_template'] , 'author')) ){
-							$exp = explode('_by_', $condi['sub_template']);
-							
-							if($exp[0] == $condi['sub_template']){
-								$sub_check = 'is_singular';
-								$id_check = ( $sub_check &&  get_the_author_meta( 'ID' ) == $condi['id'] ) ? 1 : 2;
-							}else{
-								$sub_check = ($exp[0] == 'post' ? 'is_single' : 'is_'.$exp[0] );
-								$id_check = ( $sub_check && get_the_author_meta( 'ID' ) == $condi['id']) ? 1 : 2;
+						// If the condition callback is false, continue the loop 
+						if( is_callable($sub_tmpl_array['check_conditions']) ){
+							if( empty($sub_tmpl_array['check_conditions']($condi)) ){
+								continue;
 							}
-							
-						}elseif( ($condi['sub_template'] == 'post_tag') || ($condi['sub_template'] == 'category') ){
-							$sub_check = 'is_single';
-							$id_check = 2;
-							$terms = get_the_terms( '', $condi['sub_template']);
-							
-							foreach ( $terms as $term ) {
-								$id_check = ( $sub_check && ($condi['id'] == $term->term_taxonomy_id ) ) ? 1 : 2;
-							}
-							
-						} 
+						}elseif( empty($sub_tmpl_array['check_conditions']) ){
+							continue;
+						}
 						
-					}
-				
-				// If the condition name is archives				
-				}elseif( $condi['template'] == 'archives' && (  is_archive() || is_home() || is_search() ) ){
-					
-					if( empty($condi['sub_template']) ){
 						$check = 1;
 						
-						// Set name Property 2
-						if($priority < 2){ $priority = 2; }
-						
-					}else{
-						$sub_check = 'is_'.$condi['sub_template'];
-						if( is_numeric(strpos($condi['sub_template'] , 'tag')) ){
-							$sub_check = 'is_tag';
-						}elseif($condi['sub_template'] == 'posts_page'){
-							$sub_check = 'is_home';
+						if( !empty($condi['id']) ){
+							$set_prio = 4; // Set id Property 4
+						}else{
+							$set_prio = 3;// Set sub_template Property 3
+							// If no id section then Property 
+							if($sub_tmpl_array['no_id_section']){ $set_prio = 4; } 
 						}
-						
-					}
-					
-				}
-				
-				if( !empty($sub_check) && function_exists($sub_check) ){
-					if(!empty($condi['id'])){
-						
-						if(!empty($id_check) && $id_check == 1 ){
-							$check = 1;
-							// Set id Property 4
-							if($priority < 4){ $priority = 4; }
-							
-						}elseif($sub_check($condi['id'] ) && $id_check != 2 ){
-							$check = 1;
-							// Set id Property 4
-							if($priority < 4){ $priority = 4; }
-						}
-						
-					}elseif( $sub_check() ){
-						$check = 1;
-						// Set sub_template Property 3
-						$set_prio = 3;
-						$sub_template_prio = ['front_page', '404', 'date', 'search', 'posts_page'];
-						
-						foreach($sub_template_prio as $sub_prio){
-							if( $condi['sub_template'] == $sub_prio ){
-								$set_prio = 4;
-							}
-						}
-												
-						if($priority < $set_prio){ $priority = $set_prio; }
 					}
 				}
 				
@@ -318,6 +277,9 @@ function pagelayer_template_check_conditons($ids = [], $file = false){
 				if($check){
 					// If the template is valid for apply 
 					$selected_template = $check;
+					
+					// Set priority
+					if($priority < $set_prio){ $priority = $set_prio; }
 				}
 			}
 		}

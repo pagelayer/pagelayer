@@ -3,19 +3,22 @@
 // We need the ABSPATH
 if (!defined('ABSPATH')) exit;
 
-define('PAGELAYER_BASE', plugin_basename(__FILE__));
-define('PAGELAYER_FILE', __FILE__);
-define('PAGELAYER_VERSION', '1.0.0');
+define('PAGELAYER_BASE', plugin_basename(PAGELAYER_FILE));
+define('PAGELAYER_PRO_BASE', 'pagelayer-pro/pagelayer-pro.php');
+define('PAGELAYER_VERSION', '1.0.3');
 define('PAGELAYER_DIR', WP_PLUGIN_DIR.'/'.basename(dirname(PAGELAYER_FILE)));
 define('PAGELAYER_SLUG', 'pagelayer');
 define('PAGELAYER_URL', plugins_url('', PAGELAYER_FILE));
 define('PAGELAYER_CSS', PAGELAYER_URL.'/css');
 define('PAGELAYER_JS', PAGELAYER_URL.'/js');
-define('PAGELAYER_PRO_URL', 'https://pagelayer.com/features#compare');
+define('PAGELAYER_PRO_URL', 'https://pagelayer.com/pricing?from=plugin');
+define('PAGELAYER_WWW_URL', 'https://pagelayer.com/');
 define('PAGELAYER_DOCS', 'https://pagelayer.com/docs/');
 define('PAGELAYER_API', 'https://api.pagelayer.com/');
 define('PAGELAYER_SC_PREFIX', 'pl');
 define('PAGELAYER_YOUTUBE_BG', 'https://www.youtube.com/watch?v=Csa6rvCWmLU');
+@define('PAGELAYER_BRAND_TEXT', 'Pagelayer');
+@define('PAGELAYER_LOGO', PAGELAYER_URL.'/images/pagelayer-logo-40.png');
 
 include_once(PAGELAYER_DIR.'/main/functions.php');
 include_once(PAGELAYER_DIR.'/main/class.php');
@@ -84,6 +87,9 @@ function pagelayer_load_plugin(){
 
 	// Set the array
 	$pagelayer = new PageLayer();
+	
+	// Load license
+	pagelayer_load_license();
 
 	// Is there any ACTION set ?
 	$pagelayer->action = pagelayer_optreq('pagelayer-action');
@@ -102,19 +108,55 @@ function pagelayer_load_plugin(){
 	pagelayer_maybe_promo([
 		'after' => 1,// In days
 		'interval' => 30,// In days
-		//'pro_url' => 'https://pagelayer.com/themes/wordpress/corporate/Bizworx_Pro',
+		'pro_url' => PAGELAYER_PRO_URL,
 		'rating' => 'https://wordpress.org/plugins/pagelayer/#reviews',
-		'twitter' => 'https://twitter.com/pagelayer?status='.rawurlencode('I love #Pagelayer Site Builder by @pagelayer team  for my #WordPress site - '.home_url()),
+		'twitter' => 'https://twitter.com/pagelayer?status='.rawurlencode('I love #Pagelayer Site Builder by @pagelayer team for my #WordPress site - '.home_url()),
 		'facebook' => 'https://www.facebook.com/pagelayer',
-		'website' => '//pagelayer.com',
+		'website' => PAGELAYER_WWW_URL,
 		'image' => PAGELAYER_URL.'/images/pagelayer-logo-256.png'
 	]);
 
 	// Its premium
 	if(defined('PAGELAYER_PREMIUM')){
+	
+		// Check for updates
+		include_once(PAGELAYER_DIR.'/main/plugin-update-checker.php');
+		$pagelayer_updater = Pagelayer_PucFactory::buildUpdateChecker(PAGELAYER_API.'updates.php?version='.PAGELAYER_VERSION, PAGELAYER_FILE);
+		
+		// Add the license key to query arguments
+		$pagelayer_updater->addQueryArgFilter('pagelayer_updater_filter_args');
+		
+		// Show the text to install the license key
+		add_filter('puc_manual_final_check_link-pagelayer-pro', 'pagelayer_updater_check_link', 10, 1);
+		
+		// Load the template builder
 		include_once(PAGELAYER_DIR.'/main/template-builder.php');
 	}
 
+}
+
+// Add our license key if ANY
+function pagelayer_updater_filter_args($queryArgs) {
+	
+	global $pagelayer;
+	
+	if ( !empty($pagelayer->license['license']) ) {
+		$queryArgs['license'] = $pagelayer->license['license'];
+	}
+	
+	return $queryArgs;
+}
+
+// Handle the Check for update link and ask to install license key
+function pagelayer_updater_check_link($final_link){
+	
+	global $pagelayer;
+	
+	if(empty($pagelayer->license['license'])){
+		return '<a href="'.admin_url('admin.php?page=pagelayer_license').'">Install Pagelayer Pro License Key</a>';
+	}
+	
+	return $final_link;
 }
 
 // This adds the left menu in WordPress Admin page
@@ -140,7 +182,7 @@ function pagelayer_admin_menu() {
 		add_submenu_page('pagelayer', __('Font Settings'), __('Font Settings'), $capability, 'pagelayer_fonts', 'pagelayer_page_fonts');
 
 		// Add new template
-		add_submenu_page('pagelayer', __('Theme Builder'), __('Theme Builder'), $capability, 'edit.php?post_type=pagelayer-template');
+		add_submenu_page('pagelayer', __('Theme Templates'), __('Theme Templates'), $capability, 'edit.php?post_type=pagelayer-template');
 
 		// Add new template Link
 		//add_submenu_page('pagelayer', __('Add New Template'), __('Add New Template'), $capability, 'edit.php?post_type=pagelayer-template#new');
@@ -159,6 +201,9 @@ function pagelayer_admin_menu() {
 
 	}
 
+	// License Page
+	add_submenu_page('pagelayer', __('Pagelayer Editor'), __('License'), $capability, 'pagelayer_license', 'pagelayer_license_page');
+
 }
 
 // This function will handle the Settings Pages in PageLayer
@@ -170,11 +215,17 @@ function pagelayer_page_handler(){
 	wp_enqueue_style( 'pagelayer-admin', PAGELAYER_CSS.'/pagelayer-admin.css', array(), PAGELAYER_VERSION);
 
 	include_once(PAGELAYER_DIR.'/main/settings.php');
+
+}
+
+// This function will handle the Settings Pages in PageLayer
+function pagelayer_license_page(){
+
+	global $wp_version, $pagelayer;
+
+	include_once(PAGELAYER_DIR.'/main/license.php');
 	
-	// Handle fonts
-	if($pagelayer->action == 'fonts-manager'){
-		include_once(PAGELAYER_DIR.'/main/fonts.php');
-	}
+	pagelayer_license();
 
 }
 
@@ -218,7 +269,7 @@ function pagelayer_enqueue_frontend($force = false){
 		return;
 	}
 
-	if(empty($post->ID)){
+	if(empty($post->ID) && empty($force)){
 		return;
 	}
 	
@@ -273,9 +324,13 @@ function pagelayer_enqueue_frontend($force = false){
 
 		wp_register_style('pagelayer-frontend', PAGELAYER_CSS.'/givecss.php?give=pagelayer-frontend.css,nivo-lightbox.css,animate.min.css,owl.carousel.min.css,owl.theme.default.min.css'.$premium_css, array(), PAGELAYER_VERSION);
 		wp_enqueue_style('pagelayer-frontend');
-
-		wp_register_style('font-awesome', PAGELAYER_CSS.'/font-awesome.min.css', array(), PAGELAYER_VERSION);
-		wp_enqueue_style('font-awesome');
+		
+		// Get list of enabled icons
+		$icons = pagelayer_enabled_icons();
+		foreach($icons as $icon){
+			wp_register_style($icon, PAGELAYER_CSS.'/givecss.php?give='.$icon.'.min.css', array(), PAGELAYER_VERSION);
+			wp_enqueue_style($icon);
+		}
 		
 		// Load the global styles
 		add_action('wp_head', 'pagelayer_global_styles', 5);
@@ -330,7 +385,8 @@ function pagelayer_global_styles(){
 	
 	$width  = get_option('pagelayer_content_width', '1170');
 	
-	$styles .= '.pagelayer-row-stretch-auto .pagelayer-row-holder, .pagelayer-row-stretch-full .pagelayer-row-holder.pagelayer-width-auto{ max-width: '.$width.'px; margin-left: auto; margin-right: auto;}';
+	// Style for only child row holder
+	$styles .= '.pagelayer-row-stretch-auto > .pagelayer-row-holder, .pagelayer-row-stretch-full > .pagelayer-row-holder.pagelayer-width-auto{ max-width: '.$width.'px; margin-left: auto; margin-right: auto;}';
 	
 	$styles .= '</style>';
 	
@@ -431,6 +487,17 @@ jQuery(document).ready(function(){
 	
 }
 
+// Handle Old Slug URL redirect for live link
+add_filter( 'old_slug_redirect_url', 'pagelayer_old_slug_redirect', 10, 1);
+function pagelayer_old_slug_redirect($link){
+	
+	if(pagelayer_optreq('pagelayer-live')){
+		$link = add_query_arg('pagelayer-live', '1', $link);
+	}
+	
+	return $link;
+}
+
 add_filter( 'post_row_actions', 'pagelayer_quick_link', 10, 2 );
 add_filter( 'page_row_actions', 'pagelayer_quick_link', 10, 2 );
 function pagelayer_quick_link($actions, $post){
@@ -439,6 +506,20 @@ function pagelayer_quick_link($actions, $post){
 	$actions['pagelayer'] = '<a href="'.esc_url( $link ).'">'.__( 'Edit using Pagelayer', 'pagelayer') .'</a>';
 
 	return $actions;
+}
+
+// Add settings link on plugin page
+add_filter('plugin_action_links_pagelayer/pagelayer.php', 'pagelayer_plugin_action_links');
+function pagelayer_plugin_action_links($links){
+	
+	if(!defined('PAGELAYER_PREMIUM')){
+		 $links[] = '<a href="'.PAGELAYER_PRO_URL.'" style="color:#3db634;" target="_blank">'._x('Go Pro', 'Upgrade to Pagelayer Pro for many more features', 'pagelayer').'</a>';
+	}
+
+	$settings_link = '<a href="admin.php?page=pagelayer">Settings</a>';	
+	array_unshift($links, $settings_link); 
+	
+	return $links;
 }
 
 // Pagelayer Template Loading Mechanism

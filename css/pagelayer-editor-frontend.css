@@ -13,6 +13,11 @@ padding:5px;
 .pagelayer-add-ele .fa{
 font-size:15px;
 color:#4a4949;
+cursor:pointer;
+}
+
+.pagelayer-add-ele .fa:hover:before{
+color:#3e8ef7;
 }
 
 .pagelayer-add-ele span,
@@ -59,6 +64,10 @@ outline:1px solid #277CF9;
 outline:1px solid #7460EE;
 }
 
+.pagelayer-hide-active{
+outline: transparent !important;
+}
+
 .pagelayer-row-hover{
 outline-color:#41A85F;
 outline-width:1px;
@@ -84,7 +93,7 @@ pointer-events:auto;
 
 .pagelayer-eoi{
 display:inline-block !important;
-font-size:13px !important;
+font-size:12px !important;
 padding:4px !important;
 background:#277CF9;
 color:#fff ;
@@ -96,7 +105,7 @@ cursor: pointer;
 }
 
 .pagelayer-row-option{
-top:-21px;
+top:-20px;
 left:calc(50% - 63px/2);
 z-index: 30;
 }
@@ -165,10 +174,14 @@ padding: 0;
 
 .pagelayer-right-click-options a{
 color: #4a4949;
-padding: 5px 10px;
+padding: 8px 10px;
 width: 100%;
 display: block;
 transition: all 0.2s;
+}
+
+.pagelayer-right-click-options a .fa{
+margin-right: 5px;
 }
 
 .pagelayer-right-click-options a:hover{
@@ -217,12 +230,36 @@ text-align: center;
 border: 2px #3e8ef7;
 border-style: dashed;
 position:relative;
-cursor: pointer;
+font-family: "Open Sans", Arial,Helvetica,sans-serif;
+margin:20px 0px;
 }
 
-.pagelayer-add-widget-area .fa.fa-plus-circle{
-font-size: 26px;
-color: #3e8ef7;
+.pagelayer-add-widget-area .pagelayer-add-button{
+font-size: 14px;
+font-weight: bold;
+border: 1px solid #007bff;
+background-color: #007bff;
+color:#fff;
+border-radius:5px;
+padding:9px;
+margin-right:5px;
+cursor:pointer;
+display:inline-block;
+}
+
+.pagelayer-add-widget-area .pagelayer-add-button:hover{
+border: 1px solid #0069d9;
+background-color: #0069d9;
+}
+
+.pagelayer-add-widget-area .pagelayer-add-section{
+border: 1px solid #17a2b8;
+background-color: #17a2b8;
+}
+
+.pagelayer-add-widget-area .pagelayer-add-section:hover{
+border: 1px solid #138496;
+background-color: #138496;
 }
 
 .pagelayer-add-widget-area p{
@@ -308,7 +345,7 @@ border-radius:100%;
 }
 
 /* Hide resize handler icon from last child*/
-.pagelayer-wrap-col:not(:last-child):hover .pagelayer-ele-hover .pagelayer-resize-handler{
+.pagelayer-wrap-col:not(:last-child):hover > .pagelayer-ele-hover .pagelayer-resize-handler{
 display:block;
 }
 

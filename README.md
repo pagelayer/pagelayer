@@ -1,10 +1,10 @@
 # Page Builder: PageLayer - Drag and Drop website builder 
 * Contributors: pagelayer
-* Tags: page builder, editor, landing page, drag-and-drop, pagelayer, softaculous, visual editor, wysiwyg, design, maintenance mode, coming soon, under construction, website builder, landing page builder, front-end builder, site-builder
+* Tags: page builder, editor, landing page, drag-and-drop, pagelayer, form-builder, popup, widgets, softaculous, visual editor, wysiwyg, design, maintenance mode, coming soon, under construction, website builder, landing page builder, front-end builder, site-builder
 * Requires at least: 4.7
-* Tested up to: 5.2
-* Requires PHP: 5.2.4
-* Stable tag: 1.0.0
+* Tested up to: 5.3
+* Requires PHP: 5.4
+* Stable tag: 1.0.3
 * License: LGPL v2.1
 * License URI: http://www.gnu.org/licenses/lgpl-2.1.html
 
@@ -90,10 +90,6 @@ Each widget has multiple options to fully customize the widget such as change fo
 
 And more are in the making !
 
-# Create Visually Appealing and Professional Websites 
-
-TODO
-
 ## Frequently Asked Questions 
 
 Do you have questions related to PageLayer ? Use the following links :
@@ -112,6 +108,54 @@ Do you have questions related to PageLayer ? Use the following links :
 6. **Sections** Pagelayer has a nice grid systems with rows and columns. You can create sections so much easily with Pagelayer
 
 ## Changelog 
+
+# 1.0.3 (November 17, 2019) 
+* [Task] We have launched Pagelayer Pro with features like 60+ widgets, 400+ sections, Theme Builder, WooCommerce Builder, Theme Creator and Exporter, Form Builder, Popup Builder, etc.
+* [Bug-Fix] Animation effects used $ instead of jQuery which broke things in WordPress 5.3. This is fixed.
+
+# 1.0.2 (November 17, 2019) 
+* [Feature] You can now drag the left bar to the right or keep it in the center. Even if you close it, the properties will appear if you edit an existing element.
+* [Feature] Added a navigator to see the elements structurally.
+* [Feature] Added Font-Awesome 5 with backward compatibility for v4.
+* [Feature] Added Position Styles for an element. You can now set the position of an element to Relative, Absolute, Fixed. Various customizations are now possible because of this.
+* [Feature] Added ctrl+d to duplicate the active element.
+* [Feature] Added custom x/y position for background image in Element Options for all widgets.
+* [Task] Font-Awesome 5 will now be gzipped and served.
+* [Task] Pagelayer editor icons have been updated.
+* [Task] Added a X-icon option in the widget search field to clear the search box.
+* [Task] Added Spread and Inset / Outset options to Box Shadow.
+* [Task] Added background slider option in Row and Columns for the Pro version.
+* [Task] Added the option to add the Pagelayer Pro license in the Free Version and install the Pro version from the license page itself.
+* [Bug-Fix] A trigger action was causing things to break in WordPress 5.3. This is fixed.
+* [Bug-Fix] List item was not getting a width of 100% of the holder. This is fixed.
+* [Bug-Fix] In some cases the cache control for the editor JS was failing. This is fixed.
+* [Bug-Fix] If text shadow was given to a heading for hover, it was not working. This is fixed.
+
+# 1.0.1 (November 1, 2019) 
+* [Feature] Added the Post and Body options. You can now give Styles to the body as well. Click the settings icon on the right of the Pagelayer logo to edit the body and post properties.
+* [Feature] Added premade Section(s) wizard for the users in the editor. We will be launching 100s of sections, headers, footers, etc. to build websites faster.
+* [Feature] You can now Insert from URL even in an image slider. You will need to enter comma seperated URLs.
+* [Feature] Added hover effects for Title Widget.
+* [Task] Added rel option for Button Widget.
+* [Task] Added tooltips in the editor to improve the editor UX.
+* [Task] Further improved the speed of the editor by shifting the shortcodes data to a cached javascript file.
+* [Task] Added actions / triggers in the Javascript API of the Pagelayer Live Editor.
+* [Task] If the sidebar in the editor is closed and an element is clicked, the sidebar will be opened with the properties of the element shown.
+* [Task] localstorage will be used for the copy and paste events.
+* [Task] UI Changes for the Pagelayer Editor.
+* [Task] An element can now hide properties if not required for the element. This is a dev related feature.
+* [Bug Fix] You can now undo a drag of an element i.e. if you move an element from position 1 to position 2 and undo the changes, the element will be restore to position 1.
+* [Bug Fix] If the last column in a row was moved ahead, the column resize option was not shown for that column. This is fixed.
+* [Bug Fix] While resizing a column, if the mouse moved beyond the boundaries of the element, the resize percentage was not shown. This is fixed
+* [Bug Fix] If an element was copied and pasted, the text formatting used to be lost in certain cases. This is fixed.
+* [Bug Fix] While typing in the editor, if delete key was pressed, the element used to be deleted. This is fixed.
+* [Bug Fix] If an element was copied and while entering the URL of an image, the copied element used to be pasted after the active element. This is fixed.
+* [Bug Fix] If any section containing properties in the Editor sidebar were empty, that section was still shown. This is fixed.
+* [Bug Fix] If a custom width was set for a column and that was duplicated, the row holding that column used to get the column width. This is fixed.
+* [Bug Fix] There were 2 shadow options for an element. We have removed the one from the Border Style. Shadow options for the element is now available only in Box Style.
+* [Bug Fix] If the user was not logged in, WordPress related widgets were not getting rendered. This is fixed.
+* [Bug Fix] Inner rows were inheriting the width property of the parent row and ignoring their own width property. This is fixed.
+* [Bug Fix] If the slug was changed, in some cases the Pagelayer editor would fail to load because WordPress removed the pagelayer-live param from the URL in the old slug URL. This is fixed.
 
 # 1.0.0 (September 27, 2019) 
 * [Feature] Added the option to resize columns by dragging the divider between the 2 columns.

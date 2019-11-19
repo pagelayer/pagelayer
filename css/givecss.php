@@ -26,11 +26,13 @@ $self_path = dirname(__FILE__);
 $files = array(
 		// Admin CSS
 		'pagelayer-editor.css',
+		'pagelayer-icons.css',
 		'pagelayer-editor-frontend.css',
 		'trumbowyg.min.css',
 		'pen.css',
 		// Enduser CSS
-		'font-awesome.min.css',
+		'font-awesome5.min.css',
+		'font-awesome5-v4shims.css',
 		'nivo-lightbox.css',
 		'owl.carousel.min.css',
 		'owl.theme.default.min.css',

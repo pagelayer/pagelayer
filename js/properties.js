@@ -48,6 +48,14 @@ function pagelayer_data(jEle, clean){
 		// Anything to set ?
 		ret.set = {};
 		
+		// Function to clear any att data
+		var pagelayer_delete_atts = function(x){
+			delete ret.atts[x];
+			delete ret.atts[x+'_tablet'];// Any tablet and mobile values as well
+			delete ret.atts[x+'_mobile'];
+			delete ret.set[x];		
+		}
+		
 		// All props
 		var all_props = pagelayer_shortcodes[tag];
 		
@@ -68,10 +76,20 @@ function pagelayer_data(jEle, clean){
 				for(var x in props){
 					
 					var prop = props[x];
+				
+					// Any prop to skip ?
+					if(!pagelayer_empty(all_props['skip_props']) && jQuery.inArray(x, all_props['skip_props']) > -1){
+						pagelayer_delete_atts(x);
+						continue;
+					}
 					
 					// Are we to set this value ?
 					if(!(x in ret.atts) && 'default' in prop && !pagelayer_empty(prop['default'])){
-						ret.set[x] = prop['default'];
+						
+						// We need to make sure its not a PRO value
+						if(!('pro' in prop && pagelayer_empty(pagelayer_pro))){
+							ret.set[x] = prop['default'];
+						}
 					}
 					
 					if(!('req' in prop)){
@@ -128,10 +146,7 @@ function pagelayer_data(jEle, clean){
 					// Are we to show ?
 					if(!toShow){
 						//console.log('Delete : '+x);
-						delete ret.atts[x];
-						delete ret.atts[x+'_tablet'];// Any tablet and mobile values as well
-						delete ret.atts[x+'_mobile'];
-						delete ret.set[x];
+						pagelayer_delete_atts(x);
 					}
 				}
 			}
@@ -153,8 +168,8 @@ function pagelayer_elpd_setup(){
 			//'<div class="pagelayer-elpd-tab" pagelayer-elpd-tab="styles">Style</div>'+
 			'<div class="pagelayer-elpd-tab" pagelayer-elpd-tab="options">Options</div>'+
 			'<div class="pagelayer-elpd-options">'+
-				'<i class="fa fa-clone" />'+
-				'<i class="fa fa-trash" />'+
+				'<i class="pli pli-clone" />'+
+				'<i class="pli pli-trashcan" />'+
 			'</div>'+
 		'</div>'+
 		'<div class="pagelayer-elpd-body"></div>'+
@@ -173,12 +188,12 @@ function pagelayer_elpd_setup(){
 	});
 	
 	// Copy
-	pagelayer.$$('.pagelayer-elpd-options>.fa-clone').on('click', function(){
+	pagelayer.$$('.pagelayer-elpd-options>.pli-clone').on('click', function(){
 		pagelayer_copy_element(pagelayer_active.el.$);
 	});
 	
 	// Delete
-	pagelayer.$$('.pagelayer-elpd-options>.fa-trash').on('click', function(){
+	pagelayer.$$('.pagelayer-elpd-options>.pli-trashcan').on('click', function(){
 		pagelayer_delete_element(pagelayer_active.el.$);
 		//pagelayer.$$('.pagelayer-elpd-close').click();
 	});
@@ -225,6 +240,9 @@ function pagelayer_elpd_open(jEle){
 	// Set pagelayer history TRUE
 	pagelayer.history_action = true;
 	
+	// Render tooltips for the ELPD
+	pagelayer_tooltip_setup();
+	
 };
 
 // Show the properties window
@@ -257,7 +275,7 @@ function pagelayer_elpd_generate(jEle, holder){
 			//console.log(props);
 			
 			var sec = jQuery('<div class="pagelayer-elpd-section" section="'+section+'" pagelayer-show-tab="'+tab+'">'+
-					'<div class="pagelayer-elpd-section-name '+sec_open_class+'"><i class="fa"></i>'+all_props[tab][section]+'</div>'+
+					'<div class="pagelayer-elpd-section-name '+sec_open_class+'"><i class="pli"></i>'+all_props[tab][section]+'</div>'+
 					'<div class="pagelayer-elpd-section-rows"></div>'+
 					'</div>');
 			holder.append(sec);
@@ -290,10 +308,21 @@ function pagelayer_elpd_generate(jEle, holder){
 		
 				// Set element
 				props[x]['el'] = el;
+				
+				// Any prop to skip ?
+				if(!pagelayer_empty(all_props['skip_props']) && jQuery.inArray(x, all_props['skip_props']) > -1){
+					continue;
+				}
 		
 				// Add the row
 				pagelayer_elpd_row(sec, tab, section, props, x);
 				
+			}
+			
+			// Hide empty sections
+			if(sec.html().length < 1){
+				//console.log(section+' - '+sec.html().length);
+				sec.parent().remove();
 			}
 		}
 	}
@@ -541,6 +570,7 @@ function pagelayer_elpd_show_rows(){
 					}
 					
 				}
+				
 			}
 		}
 	
@@ -706,37 +736,37 @@ function pagelayer_elp_label(row, prop){
 	if('screen' in prop){
 		var mode = pagelayer_get_screen_mode();
 		var screen = '<div class="pagelayer-elp-screen">'+
-			'<i class="fa fa-desktop" />'+
-			'<i class="fa fa-tablet" />'+
-			'<i class="fa fa-mobile" />'+
-			'<i class="pagelayer-prop-screen fa fa-'+mode+'" />'+
+			'<i class="pli pli-desktop" />'+
+			'<i class="pli pli-tablet" />'+
+			'<i class="pli pli-mobile" />'+
+			'<i class="pagelayer-prop-screen pli pli-'+mode+'" />'+
 		'</div>';
 		label.append(screen);
 		
 		// Set screen mode on change
-		label.find('.fa:not(.pagelayer-prop-screen)').on('click', function(){
+		label.find('.pli:not(.pagelayer-prop-screen)').on('click', function(){
 			var mode = 'desktop';
 			var jEle = jQuery(this);
 			
 			// Tablet ?
-			if(jEle.hasClass('fa-tablet')){
+			if(jEle.hasClass('pli-tablet')){
 				mode = 'tablet';
 			}
 			
 			// Mobile ?
-			if(jEle.hasClass('fa-mobile')){
+			if(jEle.hasClass('pli-mobile')){
 				mode = 'mobile';
 			}
 			
 			pagelayer_set_screen_mode(mode);
-			label.find('.pagelayer-elp-screen .fa').removeClass('open');
+			label.find('.pagelayer-elp-screen .pli').removeClass('open');
 			
 		});
 		
 		// On change of screen handle the values
 		label.find('.pagelayer-elp-screen').on('pagelayer-screen-changed', function(e){
 			
-			label.find('.pagelayer-elp-screen .fa').removeClass('open');
+			label.find('.pagelayer-elp-screen .pli').removeClass('open');
 			var mode = pagelayer_get_screen_mode();
 			var modes = {desktop: '', tablet: '_tablet', mobile: '_mobile'};
 			
@@ -771,6 +801,14 @@ function pagelayer_elp_label(row, prop){
 			jQuery(this).siblings().toggleClass('open');
 		})
 		
+	}
+	
+	// Do we have pro version requirement ?
+	if('pro' in prop && pagelayer_empty(pagelayer_pro)){
+		var txt = prop['pro'].length > 1 ? prop['pro'] : 'This feature is a part of <a href="'+pagelayer_pro_url+'" target="_blank">Pagelayer Pro</a>. You will need purchase <a href="'+pagelayer_pro_url+'" target="_blank">Pagelayer Pro</a> to use this feature.'
+		var pro = jQuery('<div class="pagelayer-pro-req">Pro</div>');
+		pro.attr('data-tlite', txt);
+		label.append(pro);
 	}
 	
 	// Do we have units ?
@@ -950,22 +988,22 @@ function pagelayer_elp_multiselect(row, prop){
 
 function _pagelayer_trigger_anim(row, anim){
 	var id = row.closest('[pagelayer-element-id]').attr('pagelayer-element-id');
-	var classList = $('[pagelayer-id='+id+']').attr('class');
+	var classList = jQuery('[pagelayer-id='+id+']').attr('class');
 	classList = classList.split(/\s+/);
 	//console.log(classList);
 	var options = [];
 	row.find('option').each(function(){
-		var found = $.inArray( $(this).val(), classList );
+		var found = jQuery.inArray( jQuery(this).val(), classList );
 		if( found != -1){
-			//var found = $(this).val();
-			$('[pagelayer-id='+id+']').removeClass($(this).val());
+			//var found = jQuery(this).val();
+			jQuery('[pagelayer-id='+id+']').removeClass(jQuery(this).val());
 			//break;
 		}
-		//options.push($(this).val());
+		//options.push(jQuery(this).val());
 	});
-	$('[pagelayer-id='+id+']').removeClass('pagelayer-wow').addClass(anim + ' animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-	$(this).removeClass(anim+ ' animated');
-    });
+	jQuery('[pagelayer-id='+id+']').removeClass('pagelayer-wow').addClass(anim + ' animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+		jQuery(this).removeClass(anim+ ' animated');
+	});
 }
 
 // The Checkbox property
@@ -1040,7 +1078,7 @@ function pagelayer_elp_image(row, prop){
 	
 	var div = '<div class="pagelayer-elp-image-div">'+
 				'<div class="pagelayer-elp-image" '+style+'></div>'+
-				'<div class="pagelayer-elp-image-delete"><i class="fa fa-trash" /></div>'+
+				'<div class="pagelayer-elp-image-delete"><i class="pli pli-trashcan" /></div>'+
 			'</div>';
 	
 	row.append(div);
@@ -1155,9 +1193,41 @@ function pagelayer_elp_multi_image(row, prop){
 		//console.log(ids);
 		
 		// Load the frame
-		var frame = pagelayer_select_frame('multi_image', 'gallery'+state);
+		var frame = pagelayer_select_frame('multi_image', state);
 		
 		frame.on({
+			
+			'select': function(){
+				
+				var state = frame.state();
+				var id = url = '';
+				var urls = {};
+				
+				// External URL
+				if('props' in state){
+					//console.log(state);
+					var urls_str = state.props.attributes.url;
+					
+					var urls_arr = urls_str.split(',');
+					//console.log(urls_arr);
+					
+					button.empty();
+					
+					// Add to current selection
+					for(var i = 0; i < urls_arr.length; i++){
+						var single_url = pagelayer_parse_theme_vars(urls_arr[i]);
+						urls['i'+i] = single_url;
+						
+						// Create thumbnails
+						button.append('<div class="pagelayer-elp-multi_image-thumb" style="background-image: url(\''+single_url+'\');"></div>');
+					}
+					urls_arr = Object.values(urls);
+					
+					_pagelayer_set_tmp_atts(row, 'urls', JSON.stringify(urls));
+					_pagelayer_set_atts(row, urls_arr.join());
+					
+				}
+			},
 			
 			// Set the current selection if any
 			'open': function(){
@@ -1167,17 +1237,19 @@ function pagelayer_elp_multi_image(row, prop){
 					
 					var selection = '';
 					
-					if(state == '-edit'){
+					if(state == 'gallery-edit'){
 						selection = frame.state().get('library');
-					}else{
+					}else if(state == 'gallery-library'){
 						selection = frame.state().get('selection');
 					}
 					
 					// Add to current selection
-					for(var x in ids){
-						attachment = wp.media.attachment(ids[x]);
-						attachment.fetch();
-						selection.add(attachment ? [ attachment ] : [] );
+					if(!pagelayer_empty(selection)){
+						for(var x in ids){
+							attachment = wp.media.attachment(ids[x]);
+							attachment.fetch();
+							selection.add(attachment ? [ attachment ] : [] );
+						}
 					}
 				}
 			},
@@ -1254,11 +1326,20 @@ function pagelayer_elp_multi_image(row, prop){
 	};
 	
 	row.find('.pagelayer-elp-multi_image-thumbs').on('click', function(){
-		pagelayer_init_frame('-edit');
+		pagelayer_init_frame('gallery-edit');
 	});
 	
 	row.find('.pagelayer-elp-button').on('click', function(){
-		pagelayer_init_frame(ids.length > 0 ? '-library' : '');
+		//console.log(ids.length);
+		if(ids.length > 0){
+			if(isNaN(ids[0])){
+				pagelayer_init_frame('embed');
+			}else{
+				pagelayer_init_frame('gallery-library');
+			}
+		}else{
+			pagelayer_init_frame('gallery');
+		}		
 	});
 	
 }
@@ -1271,12 +1352,12 @@ function pagelayer_elp_video(row, prop){
 	
 	var div = '<div class="pagelayer-elp-video-div pagelayer-elp-input-icon">'+
 				'<input class="pagelayer-elp-video" name="'+prop.c['name']+'" type="text" value="'+src+'">'+
-				'<i class="fa fa-folder-open" />'+
+				'<i class="pli pli-folder-open" />'+
 			'</input></div>';
 			
 	row.append(div);
 	
-	row.find('.pagelayer-elp-video-div .fa').on('click', function(){
+	row.find('.pagelayer-elp-video-div .pli').on('click', function(){
 	
 		var button = jQuery(this);
 		
@@ -1346,13 +1427,13 @@ function pagelayer_elp_audio(row, prop){
 	
 	var div = '<div class="pagelayer-elp-audio-div pagelayer-elp-input-icon">'+
 				'<input class="pagelayer-elp-audio" name="'+prop.c['name']+'" type="text" value="'+src+'" />'+
-				'<i class="fa fa-bars" />'+
+				'<i class="pli pli-menu" />'+
 			'</div>';
 	
 	row.append(div);
 	
 	// Choose from media
-	row.find('.pagelayer-elp-audio-div .fa').on('click', function(){
+	row.find('.pagelayer-elp-audio-div .pli').on('click', function(){
 		
 		var button = jQuery(this);
 		
@@ -1420,12 +1501,12 @@ function pagelayer_elp_media(row, prop){
 	
 	var div = '<div class="pagelayer-elp-media-div pagelayer-elp-input-icon">'+
 				'<input class="pagelayer-elp-media" value="'+src+'" type="text" />'+
-				'<i class="fa fa-bars" />'+
+				'<i class="pli pli-menu" />'+
 			'</div>';
 	
 	row.append(div);
 	
-	row.find('.pagelayer-elp-media-div .fa-bars').on('click', function(){
+	row.find('.pagelayer-elp-media-div .pli-menu').on('click', function(){
 		
 		var button = jQuery(this);
 		
@@ -1489,8 +1570,8 @@ function pagelayer_elp_media(row, prop){
 function pagelayer_elp_slider(row, prop){
 	
 	var div = '<div class="pagelayer-elp-slider-div">'+
-				  '<input type="range" class="pagelayer-elp-slider" value="'+prop.c['val']+'" min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'"/>'+
-				  '<input type="number" class="pagelayer-elp-slider-value" value="'+prop.c['val']+'" min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'"/>'+
+				  '<input type="range" class="pagelayer-elp-slider" value="'+parseInt(prop.c['val'])+'" min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'"/>'+
+				  '<input type="number" class="pagelayer-elp-slider-value" value="'+parseInt(prop.c['val'])+'" min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'"/>'+
 				'</div>'+
 			'</div>';
 	
@@ -1519,11 +1600,12 @@ function pagelayer_elp_editor(row, prop){
 	var editor = row.find('.pagelayer-elp-editor');
 	
 	// No SVG Icons for now
-	//jQuery.trumbowyg.svgPath = false;
+	jQuery.trumbowyg.svgPath = false;
 	
 	// Initiate the editor
 	editor.trumbowyg({
 		autogrow: false,
+		hideButtonTexts: true,
 		btns:[
 			['viewHTML'],
 			['fontfamily'],
@@ -1561,7 +1643,7 @@ function pagelayer_elp_link(row, prop){
 	// TODO : Implement pagelayer-elp-link-icon
 	var div = '<div class="pagelayer-elp-link-div pagelayer-elp-input-icon">'+
 				'<input class="pagelayer-elp-link" type="text" value="'+prop.c['val']+'" />'+
-				'<i class="fa fa-link pagelayer-elp-link-icon" />'+
+				'<i class="pli pli-link pagelayer-elp-link-icon" />'+
 			'</div>';
 	
 	row.append(div);
@@ -1576,8 +1658,10 @@ function pagelayer_elp_link(row, prop){
 // The Textarea property
 function pagelayer_elp_textarea(row, prop){
 	
+	var rows = prop.rows ? 'rows="'+prop.rows+' "' : '';
+	
 	var div = '<div class="pagelayer-elp-textarea-div">'+
-				'<textarea class="pagelayer-elp-textarea">'+prop.c['val']+'</textarea>'+
+				'<textarea '+rows+'class="pagelayer-elp-textarea">'+prop.c['val']+'</textarea>'+
 			'</div>';
 			
 	row.append(div);
@@ -1678,47 +1762,62 @@ function pagelayer_make_editable(jEle, e){
 function pagelayer_elp_icon(row, prop){
 	
 	var $ = jQuery;
+	var sets_html = '';
 	
-	// Find the available icons
-	if(pagelayer_empty(pagelayer_icons)){
-		
-		pagelayer_icons = $.map($.map(document.styleSheets, function(s){
-		
-			if(s.href && s.href.match(/font\-awesome\.min\.css/)){
-				return s;
-			}			
-			return null;
-			
-		})[0].cssRules, function(r) {
-			
-			if(r.cssText.indexOf('::before { content: ') > 0){
-				return r.cssText.substring(4,r.cssText.indexOf('::'));
-			}			
-			return null;
-			
-		});
-		
-	}
+	pagelayer_loaded_icons.forEach(function(item){
+		sets_html += '<option name="'+item+'" value="'+item+'">'+item+'</option>';
+	});
 	
-	var icons = pagelayer_icons;	
-	//console.log(icons);
+	var icons = {};
+	var cur_icon_set = pagelayer_loaded_icons[0];
+	var sel_icon = prop.c['val'];
+	var sel_name = prop.c['val'];
+	var icon_type = '';
+	var sorted_icons = {};
 	
+	// Handle the icon name 
+	var icon_name = sel_icon.split(' fa-');
+	sel_name = icon_name[1];
+	
+	// Is there a specific list
 	if('list' in prop && prop.list.length > 0){
-		icons = prop.list;
+		
+		for(var i in pagelayer_icons){
+			
+			icons[i] = {};
+			
+			for(var j in pagelayer_icons[i]){
+				
+				icons[i][j] = {};
+				var list_icons = [];
+				prop.list.forEach(function(item){
+					if(pagelayer_icons[i][j]['icons'].includes(item)){
+						list_icons.push(item);
+					}
+					
+				});
+				icons[i][j]['icons'] = list_icons;
+				icons[i][j]['pre'] = j;
+			}
+			
+		}
+	
+	}else{
+		icons = pagelayer_icons;
 	}
 	
 	// Icon function
-	var icon_html = function(name){
+	var icon_html = function(name, cat){
 		return '<span class="pagelayer-elp-icon-span">'+
-			'<i class="fa fa-'+name+'" icon="fa fa-'+name+'" /> '+name+
+			'<i class="'+cat+' fa-'+name+'" icon="'+name+'" /> '+name+
 		'</span>';
 	}
 	
 	var div = '<div class="pagelayer-elp-icon-div">'+
 				'<div class="pagelayer-elp-icon-preview">'+
-					'<i class="fa fa-'+prop.c['val']+'"></i>'+
+					'<i class="'+sel_icon+'"></i>'+
 					'<span class="pagelayer-elp-icon-name">'+
-					(pagelayer_empty(prop.c['val'])?'Choose icon':prop.c['val'])+
+					(pagelayer_empty(sel_name)?'Choose icon':sel_name)+
 					'</span>'+
 				'</div>'+
 				'<span class="pagelayer-elp-icon-open">▼</span>'+
@@ -1727,55 +1826,131 @@ function pagelayer_elp_icon(row, prop){
 	row.append(div);
 	
 	// Make all icons list
-	var html = '<div class="pagelayer-elp-icon-selector">'+
-				'<input type="text" class="pagelayer-elp-search-icon" name="search-icon" placeholder="'+pagelayer_l('search')+'">'+
-			'<div class="pagelayer-elp-icon-list">';
-			
-	for(var x in icons){
-		html += icon_html(icons[x]);
+	var html = '<div class="pagelayer-elp-icon-selector">';
+	
+	if(pagelayer_loaded_icons.length > 1){
+		html += '<select class="pagelayer-elp-icon-sets">'+sets_html+'</select>';
+	}
+	html += '<span class="pagelayer-elp-icon-type" style="display:none;">'+
+		'<p data-tab="fas">'+pagelayer_l('Solid')+'</p>'+
+		'<p data-tab="far">'+pagelayer_l('Regular')+'</p>'+
+		'<p data-tab="fab">'+pagelayer_l('Brand')+'</p>'+
+	'</span>'+
+	'<input type="text" class="pagelayer-elp-search-icon" name="search-icon" placeholder="'+pagelayer_l('search')+'">'+
+	'<div class="pagelayer-elp-icon-list">';
+
+	for(var y in icons[cur_icon_set]){
+		//console.log(icons[x][y])
+		for(var z in icons[cur_icon_set][y]['icons']){
+			html += icon_html(icons[cur_icon_set][y]['icons'][z], y);
+		}
 	}
 	
-	html += 	'</div>'+
-		'</div>';
+	html += '</div>'+
+	'</div>';
 	
 	row.append(html);
+	
+	if(cur_icon_set == 'font-awesome5'){
+		row.find('.pagelayer-elp-icon-type').show();
+		sorted_icons = icons[cur_icon_set]['fas'];
+	}
+	
+	row.find('.pagelayer-elp-icon-sets').on('change',function(){
+		var v = cur_icon_set = jQuery(this).val();
+		var span = '';
+		
+		for(var x in icons[v]){
+		
+			for(var z in icons[v][x]['icons']){
+				span += icon_html(icons[v][x]['icons'][z], x);
+			}
+			
+		}
+		
+		if(cur_icon_set == 'font-awesome5'){
+			row.find('.pagelayer-elp-icon-type').show();
+			sorted_icons = icons[cur_icon_set]['fas'];
+			row.find('.pagelayer-elp-icon-type [data-tab="fas"]').click();
+		}else{
+			row.find('.pagelayer-elp-icon-type').hide();
+		}
+		
+		row.find('.pagelayer-elp-icon-list').empty().html(span);
+		
+		if(row.find('.pagelayer-elp-search-icon').val() != ''){
+			row.find('.pagelayer-elp-search-icon').keyup();
+		}
+		
+	});
 	
 	// Open the selector
 	row.find('.pagelayer-elp-icon-div').on('click', function(){
 		row.find('.pagelayer-elp-icon-selector').slideToggle();
 	});
 	
+	// Handle type of icon
+	row.find('.pagelayer-elp-icon-type p').on('click', function(){
+		
+		if(cur_icon_set == 'font-awesome5'){
+			
+			var v = jQuery(this).data('tab');
+			
+			row.find('.pagelayer-elp-icon-type p').removeClass('active');
+			
+			jQuery(this).addClass('active');
+			
+			var span ='';
+			v = v.toLowerCase();
+			
+			sorted_icons = icons['font-awesome5'][v];
+			
+			for(var z in icons['font-awesome5'][v]['icons']){
+				span += icon_html(icons['font-awesome5'][v]['icons'][z], v);
+			}
+			
+			row.find('.pagelayer-elp-icon-list').empty().html(span);
+			
+			if(row.find('.pagelayer-elp-search-icon').val() != ''){
+				row.find('.pagelayer-elp-search-icon').keyup();
+			}
+		
+		}
+		
+	});
+	
 	// Handle search of icon
-	row.find('.pagelayer-elp-search-icon').on('keyup', function(){ 
+	row.find('.pagelayer-elp-search-icon').on('keyup', function(){
 	
 		var v = this.value;
 		var span ='';
 		v = v.toLowerCase();
 		v = v.replace(/\s+/g, '-');
+		//console.log(sorted_icons);
 		
-		for(var x in icons){			
-			if(icons[x].substring(0, v.length) === v){				
-				span += icon_html(icons[x]);					
-			}			
-		}	
+		for(var x in sorted_icons['icons']){
+			if(sorted_icons['icons'][x].includes(v)){
+				span += icon_html(sorted_icons['icons'][x], sorted_icons['pre']);
+			}
+		}
 		
 		row.find('.pagelayer-elp-icon-list').empty().html(span);
 		
 	});
 	
 	// Handle click within the icon selector
-	row.find('.pagelayer-elp-icon-selector').on('click', function(e){
+	row.find('.pagelayer-elp-icon-list').on('click', function(e){
 		
 		var jEle = jQuery(e.target);
-		var i = jEle.children().attr('icon');
-		if(pagelayer_empty(i)){
+		var i = jEle.children().attr('class');
+		var name = jEle.children().attr('icon');
+		
+		if(pagelayer_empty(name)){
 			return false;
 		}
 		
-		i = i.replace('fa fa-', '');
-		
 		// Set the icon in this list
-		row.find('.pagelayer-elp-icon-preview').html('<i class="fa fa-'+i+'"></i><span class="pagelayer-elp-icon-name">'+i+'</span>');
+		row.find('.pagelayer-elp-icon-preview').html('<i class="'+i+'"></i><span class="pagelayer-elp-icon-name">'+name+'</span>');
 		row.find('.pagelayer-elp-icon-selector').slideUp();
 		
 		_pagelayer_set_atts(row, i);// Save and Render
@@ -1791,7 +1966,7 @@ function pagelayer_elp_color(row, prop){
 	
 	var div = '<div class="pagelayer-elp-color-div">'+
 		'<div class="pagelayer-elp-color-preview"></div>'+
-		'<span class="pagelayer-elp-remove-color pagelayer-prop-action"><i class="fa fa-times" /></span>'+
+		'<span class="pagelayer-elp-remove-color pagelayer-prop-action"><i class="pli pli-cross" /></span>'+
 	'</div>';
 	
 	row.append(div);
@@ -1896,10 +2071,10 @@ function pagelayer_elp_group(row, prop){
 		// Create the HTML
 		var holder = jQuery('<div class="pagelayer-elp-group-item" pagelayer-group-item-id="'+id+'">'+
 				'<div class="pagelayer-elp-group-item-head">'+
-					'<span class="pagelayer-elp-group-item-drag"><i class="fa fa-bars" /></span>'+
+					'<span class="pagelayer-elp-group-item-drag"><i class="pli pli-menu" /></span>'+
 					'<span class="pagelayer-elp-group-item-title">'+title+'</span>'+
-					'<span class="pagelayer-elp-group-item-clone"><i class="fa fa-clone" /></span>'+
-					'<span class="pagelayer-elp-group-item-del"><i class="fa fa-trash" /></span>'+
+					'<span class="pagelayer-elp-group-item-clone"><i class="pli pli-clone" /></span>'+
+					'<span class="pagelayer-elp-group-item-del"><i class="pli pli-trashcan" /></span>'+
 				'</div>'+
 				'<div class="pagelayer-elp-group-item-body"></div>'+
 			'</div>');
@@ -1936,7 +2111,7 @@ function pagelayer_elp_group(row, prop){
 		});
 		
 		// Clone the item
-		holder.find('.pagelayer-elp-group-item-head .fa-clone').on('click', function(){
+		holder.find('.pagelayer-elp-group-item-head .pli-clone').on('click', function(){
 			
 			// If the element have any parent
 			var jEle = jQuery('[pagelayer-id="'+id+'"]');
@@ -1951,7 +2126,7 @@ function pagelayer_elp_group(row, prop){
 		});
 		
 		// Delete the item
-		holder.find('.pagelayer-elp-group-item-head .fa-trash').on('click', function(){
+		holder.find('.pagelayer-elp-group-item-head .pli-trashcan').on('click', function(){
 			
 			// If the element have any parent
 			var jEle = jQuery('[pagelayer-id="'+id+'"]');
@@ -2008,13 +2183,13 @@ function pagelayer_elp_padding(row, prop){
 				'<input type="number" class="pagelayer-elp-padding" value="'+parseInt(val[1])+'"></input>'+
 				'<input type="number" class="pagelayer-elp-padding" value="'+parseInt(val[2])+'"></input>'+
 				'<input type="number" class="pagelayer-elp-padding" value="'+parseInt(val[3])+'"></input>'+
-				'<i class="fa fa-link" />'+
+				'<i class="pli pli-link" />'+
 			'</div>';
 	
 	row.append(div);
 	
 	// Is the value linked ?
-	var link = row.find('.pagelayer-elp-padding-div .fa');
+	var link = row.find('.pagelayer-elp-padding-div i');
 	var isLinked = 1;
 	//isLinked = isLinked == 2 ? false : true;
 	//console.log(isLinked);
@@ -2051,7 +2226,7 @@ function pagelayer_elp_padding(row, prop){
 	row.find('input').on('input', function(){
 		
 		// Are the values linked
-		var linked = row.find('.pagelayer-elp-padding-div .fa').hasClass('pagelayer-elp-padding-linked');
+		var linked = row.find('.pagelayer-elp-padding-div .pli').hasClass('pagelayer-elp-padding-linked');
 		
 		if(linked){
 			var val = jQuery(this).val();
@@ -2085,7 +2260,7 @@ function pagelayer_elp_shadow(row, prop){
 	
 	//var val = {color: '', blur: '', horizontal: '', vertical: ''};
 	
-	var div = '<span class="pagelayer-prop-edit"><i class="fa fa-pencil"></i></span>'+
+	var div = '<span class="pagelayer-prop-edit"><i class="pli pli-pencil"></i></span>'+
 		'<div class="pagelayer-elp-shadow-div">'+
 		'<div class="pagelayer-elp-prop-grp pagelayer-elp-shadow-horizontal">'+
 			'<label class="pagelayer-elp-label">Horizontal</label>'+
@@ -2100,7 +2275,7 @@ function pagelayer_elp_shadow(row, prop){
 			'<input class="pagelayer-elp-shadow-input" type="number" max="100" min="0" step="1" class="pagelayer-elp-shadow-blur" value="'+val[2]+'"></input>'+
 		'</div>'+
 		'<div class="pagelayer-elp-prop-grp pagelayer-elp-shadow-color">'+
-			'<label class="pagelayer-elp-label">color</label>'+
+			'<label class="pagelayer-elp-label">Color</label>'+
 			'<div class="pagelayer-elp-color-div">'+
 				'<div class="pagelayer-elp-color-preview"></div>'+
 			'</div>'+
@@ -2140,10 +2315,89 @@ function pagelayer_elp_shadow(row, prop){
 	
 }
 
+// The box shadow property
+function pagelayer_elp_box_shadow(row, prop){
+	
+	var val = ['','','','','',''];
+	
+	// Do we have a val ?
+	if(!pagelayer_empty(prop.c['val'])){
+		val = prop.c['val'].split(',');
+	}
+	
+	var val_pos = ['horizontal','vertical','blur','color','spread','inset'];
+	
+	var div = '<span class="pagelayer-prop-edit"><i class="pli pli-pencil"></i></span>'+
+		'<div class="pagelayer-elp-shadow-div">'+
+		'<div class="pagelayer-elp-prop-grp pagelayer-elp-shadow-horizontal">'+
+			'<label class="pagelayer-elp-label">Horizontal</label>'+
+			'<input class="pagelayer-elp-shadow-input" type="number" max="100" min="-100" step="1" class="pagelayer-elp-shadow-blur" name="horizontal" value="'+val[0]+'"></input>'+
+		'</div>'+
+		'<div class="pagelayer-elp-prop-grp pagelayer-elp-shadow-vertical">'+
+			'<label class="pagelayer-elp-label">Vertical</label>'+
+			'<input class="pagelayer-elp-shadow-input" type="number" max="100" min="-100" step="1" class="pagelayer-elp-shadow-blur" name="vertical" value="'+val[1]+'"></input>'+
+		'</div>'+
+		'<div class="pagelayer-elp-prop-grp pagelayer-elp-shadow-blur">'+
+			'<label class="pagelayer-elp-label">Blur</label>'+
+			'<input class="pagelayer-elp-shadow-input" type="number" max="100" min="0" step="1" class="pagelayer-elp-shadow-blur" name="blur" value="'+val[2]+'"></input>'+
+		'</div>'+
+		'<div class="pagelayer-elp-prop-grp pagelayer-elp-shadow-spread">'+
+			'<label class="pagelayer-elp-label">Spread</label>'+
+			'<input class="pagelayer-elp-shadow-input" type="number" max="100" min="0" step="1" class="pagelayer-elp-shadow-spread" name="spread" value="'+(val[4] ? val[4] : 0 )+'"></input>'+
+		'</div>'+
+		'<div class="pagelayer-elp-prop-grp pagelayer-elp-shadow-color">'+
+			'<label class="pagelayer-elp-label">Color</label>'+
+			'<div class="pagelayer-elp-color-div">'+
+				'<div class="pagelayer-elp-color-preview"></div>'+
+			'</div>'+
+		'</div>'+
+		'<div class="pagelayer-elp-prop-grp pagelayer-elp-shadow-inset">'+
+			'<label class="pagelayer-elp-label">Shadow</label>'+
+			'<select class="pagelayer-elp-shadow-input" name="inset" type="checkbox" class="pagelayer-elp-shadow-inset">'+
+				'<option value="">Outset</option>'+
+				'<option value="inset"'+(pagelayer_empty(val[5]) ? '' : ' selected' )+'>Inset</option>'+
+			'</select>'+
+		'</div>'+
+	'</div>';
+			
+	row.append(div);
+	
+	row.find('.pagelayer-prop-edit').on('click', function(){
+		row.find('.pagelayer-elp-shadow-div').toggleClass('pagelayer-prop-show');
+	});
+	
+	row.find('.pagelayer-elp-color-preview').css('background', val[3]);
+	
+	var picker = new Picker({
+		parent : row.find('.pagelayer-elp-color-div')[0],
+		popup : 'left',
+		doc: window.parent.document
+	});
+	
+	// Handle selected color
+	picker.onChange = function(color) {
+		row.find('.pagelayer-elp-color-preview').css('background', color.rgbaString);
+		val[3] = (color.hex ? color.hex : '');
+		_pagelayer_set_atts(row, val);
+	};
+	
+	row.find('.pagelayer-elp-shadow-input').on('input change', function(){
+		//var i = 0;
+		row.find('.pagelayer-elp-shadow-input').each(function(){
+			var value = jQuery(this).val();
+			var name = jQuery(this).attr('name');
+			val[val_pos.indexOf(name)] = (value ? value : '');
+			//i++;
+		});
+		_pagelayer_set_atts(row, val);
+	});
+	
+}
+
 // The filter property
 function pagelayer_elp_filter(row, prop){
 	
-	var val =['','','','','','',''];
+	var val = [0,100,100,0,0,100,100];
 	
 	// Do we have a val ?
 	if(!pagelayer_empty(prop.c['val'])){
@@ -2152,7 +2406,7 @@ function pagelayer_elp_filter(row, prop){
 	
 	var filters = [['blur','10','0.1'],['brightness','200','1'],['contrast','200','1'],['grayscale','200','1'],['hue','360','1'],['opacity','100','1'],['saturate','200','1']];
 	
-	var div = '<span class="pagelayer-prop-edit"><i class="fa fa-pencil"></i></span>'+
+	var div = '<span class="pagelayer-prop-edit"><i class="pli pli-pencil"></i></span>'+
 		'<div class="pagelayer-elp-filter-div">';
 		
 		jQuery.each(val,function(key, value){
@@ -2321,19 +2575,22 @@ function pagelayer_elp_typography(row, prop){
 	var font_option = function(val, setVal){
 		var selected = (val != setVal) ? '' : 'selected="selected"';
 		var lang = pagelayer_empty(val) ? 'Default' : val;
-		return '<option style="font-family:'+lang+'" value="'+val+'" '+selected+'>'+ lang +'</option>';
+		return '<span style="font-family:'+lang+'" value="'+val+'" '+selected+'>'+ lang +'</span>';
 	}
 	
-	var div = '<span class="pagelayer-prop-edit"><i class="fa fa-pencil"></i></span>'+
+	var div = '<span class="pagelayer-prop-edit"><i class="pli pli-pencil"></i></span>'+
 		'<div class="pagelayer-elp-typo-div">'+
 		'<div class="pagelayer-elp-typo pagelayer-elp-typo-fonts">'+
 			'<label class="pagelayer-elp-label">Font-Family</label>'+
-			'<select class="pagelayer-elp-typo-input">';
+			'<div class="pagelayer-elp-typo-sele" data-val="'+val[0]+'">'+val[0]+'</div>'+
+			'<div class="pagelayer-ele-type-sec">'+
+			'<input class="pagelayer-elp-typo-search" placeholder="Search here..."></input>'+
+			'<div class="pagelayer-elp-typo-container">';
 	
 	jQuery.each(select['fonts'],function(key, value){
 		div += font_option(value, val[0]);
 	});
-			div +='</select>'+
+			div +='</div></div>'+
 		'</div>'+
 		'<div class="pagelayer-elp-typo pagelayer-elp-typo-size">'+
 			'<label class="pagelayer-elp-label">Font-Size</label>'+
@@ -2417,9 +2674,17 @@ function pagelayer_elp_typography(row, prop){
 		row.find('.pagelayer-elp-typo-div').toggleClass('pagelayer-prop-show');
 	});
 	
+	row.find('.pagelayer-elp-typo-sele').on('click', function(){
+		row.find('.pagelayer-ele-type-sec').slideToggle();
+	});
 	
-	row.find('.pagelayer-elp-typo-input').on('change', function(){
+	row.find('.pagelayer-elp-typo-container').on('click', function(e){
+		var jEle = jQuery(e.target);
+		var set_val = jEle.attr('value');
+		row.find('.pagelayer-elp-typo-sele').data('val',set_val).html(set_val);
+		row.find('.pagelayer-ele-type-sec').slideUp();
 		val = [];
+		val[0] = set_val;
 		row.find('.pagelayer-elp-typo-input').each(function(){
 			var value = jQuery(this).val();
 			val.push(value ? value : '');
@@ -2427,9 +2692,34 @@ function pagelayer_elp_typography(row, prop){
 		_pagelayer_set_atts(row, val);
 	});
 	
-	row.find('.pagelayer-elp-typo-fonts select').on('change', function(){
+	row.find('.pagelayer-elp-typo-search').on('input', function(){
+		var val = jQuery(this).val().toLowerCase();
+		console.log(val);
+		var html = '';
+		jQuery.each(select['fonts'],function(key, value){
+			//value = value.toLowerCase();
+			if(value.toLowerCase().includes(val)){
+				html += font_option(value, val[0]);
+			}
+		});
+		row.find('.pagelayer-elp-typo-container').html(html);
 		
-		var value = jQuery(this).val();
+	});
+	
+	
+	row.find('.pagelayer-elp-typo-input').on('change', function(){
+		val = [];
+		val[0] = row.find('.pagelayer-elp-typo-sele').data('val');
+		row.find('.pagelayer-elp-typo-input').each(function(){
+			var value = jQuery(this).val();
+			val.push(value ? value : '');
+		});
+		_pagelayer_set_atts(row, val);
+	});
+	
+	row.find('.pagelayer-elp-typo-container').on('click', function(e){
+		var jEle = jQuery(e.target);
+		var value = jEle.attr('value');
 		value = value.replace(' ', '+');
 		
 		if(jQuery('#pagelayer-google-fonts').length == 0){
@@ -2472,13 +2762,13 @@ function pagelayer_elp_dimension(row, prop){
 	var div = '<div class="pagelayer-elp-dimension-div">'+
 		'<input type="number" class="pagelayer-elp-dimension" value="'+parseInt(val[0])+'"></input>'+
 		'<input type="number" class="pagelayer-elp-dimension" value="'+parseInt(val[1])+'"></input>'+
-		'<i class="fa fa-link" />'+
+		'<i class="pli pli-link" />'+
 	'</div>';
 	
 	row.append(div);
 	
 	// Is the value linked ?
-	var link = row.find('.pagelayer-elp-dimension-div .fa');
+	var link = row.find('.pagelayer-elp-dimension-div .pli');
 	var isLinked = 1;
 	var tmp_val = val[0];
 	
@@ -2513,7 +2803,7 @@ function pagelayer_elp_dimension(row, prop){
 	row.find('input').on('input', function(){
 		
 		// Are the values linked
-		var linked = row.find('.pagelayer-elp-dimension-div .fa').hasClass('pagelayer-elp-dimension-linked');
+		var linked = row.find('.pagelayer-elp-dimension-div .pli').hasClass('pagelayer-elp-dimension-linked');
 		
 		if(linked){
 			var val = jQuery(this).val();

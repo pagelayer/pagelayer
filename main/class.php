@@ -56,6 +56,9 @@ class PageLayer{
 
 	// Tabs visible in the left panel
 	var $tabs = ['settings', 'options'];
+
+	// Icons set
+	var $icons = ['font-awesome5'];
 	
 	// For exporting templates
 	var $media_to_export = array();

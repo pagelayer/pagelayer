@@ -64,6 +64,25 @@ if(!defined('PAGELAYER_VERSION')) {
 		}
 	}
 	
+	
+	
+	if(isset($_REQUEST['pagelayer_icons_set'])){
+		$pagelayer_icons_set = $_REQUEST['pagelayer_icons_set'];
+		
+		if ( get_option( 'pagelayer_icons_set' ) !== false ) {
+	
+			// The option already exists, so we just update it.
+			update_option( 'pagelayer_icons_set', $pagelayer_icons_set);
+
+		} else {
+			// The option hasn't been added yet. We'll add it with $autoload set to 'no'.
+			$deprecated = null;
+			$autoload = 'no';
+			//$pagelayer_icons_set = [];
+			add_option( 'pagelayer_icons_set', $pagelayer_icons_set, $deprecated, $autoload );
+		}
+	}
+	
 	if(isset($_REQUEST['pagelayer_content_width'])){
 
 		$content_width = $_REQUEST['pagelayer_content_width'];
@@ -215,6 +234,7 @@ if(!defined('PAGELAYER_VERSION')) {
 			<h2 class="nav-tab-wrapper pagelayer-wrapper">
 				<a href="#general" class="nav-tab">General</a>
 				<a href="#settings" class="nav-tab ">Settings</a>
+				<a href="#icons" class="nav-tab ">Enable Icons</a>
 				<?php if(defined('PAGELAYER_PREMIUM')){ ?>
 				<a href="#integration" class="nav-tab">Integrations</a>
 				<a href="#contactform" class="nav-tab ">Contact Form</a>
@@ -275,6 +295,18 @@ if(!defined('PAGELAYER_VERSION')) {
 							}?>/></td>
 					</tr>					
 				</table>
+			</div>
+			<div class="pagelayer-tab-panel" id="icons">
+				<table>
+					<tr>
+						<th scope="row">Enable Icons</th>
+						<td>
+						<label>
+							<input type="checkbox" name="pagelayer_icons_set[]" value="font-awesome5" <?php if(in_array('font-awesome5',get_option( 'pagelayer_icons_set')) || !get_option( 'pagelayer_icons_set')){echo ' checked';}?> />font-awesome5</br>
+						</label>
+						</td>
+					</tr>
+				 </table>
 			</div>
 			<div class="pagelayer-tab-panel" id="contactform">
 				 <table>

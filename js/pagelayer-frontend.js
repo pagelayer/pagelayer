@@ -502,7 +502,7 @@ function pagelayer_stars(){
 		var fullstars = starsval[0];
 		var value =  starsval[1];
 		var halfstar = parseInt(fullstars) + 1;
-		var emptystars = parseInt(fullstars) + 2;                     
+		var emptystars = parseInt(fullstars) + 2;
 		jEle.children('.pagelayer-stars-icon').attr("class","pagelayer-stars-icon");
 		jEle.children('.pagelayer-stars-icon:nth-child(-n+'+ fullstars +')').addClass('pagelayer-stars-full'); 
 		if(value != undefined){
@@ -541,19 +541,19 @@ function pagelayer_empty(mixed_var) {
   var emptyValues = [undef, null, false, 0, '', '0'];
 
   for (i = 0, len = emptyValues.length; i < len; i++) {
-    if (mixed_var === emptyValues[i]) {
-      return true;
-    }
+	if (mixed_var === emptyValues[i]) {
+	  return true;
+	}
   }
 
   if (typeof mixed_var === 'object') {
-    for (key in mixed_var) {
-      // TODO: should we check for own properties only?
-      //if (mixed_var.hasOwnProperty(key)) {
-      return false;
-      //}
-    }
-    return true;
+	for (key in mixed_var) {
+	  // TODO: should we check for own properties only?
+	  //if (mixed_var.hasOwnProperty(key)) {
+	  return false;
+	  //}
+	}
+	return true;
   }
 
   return false;

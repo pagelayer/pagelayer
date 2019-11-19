@@ -16,6 +16,7 @@ pagelayer = {
 }
 
 var pagelayer_history_obj = {}, pagelayer_revision_obj = {};
+var pagelayer_add_section_data = {};
 
 // Lets start
 jQuery(document).ready(function(){
@@ -50,6 +51,9 @@ jQuery(document).ready(function(){
 	// Setup the grid drag
 	pagelayer_setup_drag();
 	
+	// Set left bar draggable
+	pagelayer_make_leftbar_movable();
+	
 	// Set to desktop
 	pagelayer_set_screen_mode('desktop');
 	
@@ -60,11 +64,64 @@ jQuery(document).ready(function(){
 	// Setup pagelayer history handle
 	pagelayer_history_obj['action_data'] = [];
 	pagelayer_history_setup(true);
+	
+	// Do any actions here
+	pagelayer_trigger_action('pagelayer_setup_history');
+	
+	// Editor Tooltips
+	pagelayer_tooltip_setup();
+	
+	// Load Fonts	
+	for(var x in pagelayer_loaded_icons){
+		var item = pagelayer_loaded_icons[x];
+		jQuery.when(
+			pagelayer_get_stored_data(pagelayer_url+'/fonts/'+item+'.json', pagelayer_ver)
+		).then(function(){
+			pagelayer_icons[item] = JSON.parse(pagelayer_get_stored_data(pagelayer_url+'/fonts/'+item+'.json', pagelayer_ver));
+		});
+	};
 
 });
 
 // The jQuery Object of the ELPD
 var pagelayer_elpd;
+
+// Store data values
+function pagelayer_get_stored_data(url, version){
+	var name = 'pagelayer_'+url;
+	var data = {};
+	var force = false;
+	
+	// Try to parse the data
+	try{
+		data = JSON.parse(localStorage.getItem(name));
+		
+		if(data['version'] !== version){
+			force = true;
+		}
+		
+	}catch(e){
+		force = true;
+	}
+	
+	// Force download
+	if(force){
+		return jQuery.ajax({
+			url: url,
+			type: 'GET',
+			dataType: 'text',
+			success:function(newData){
+				var data = {};
+				data['version'] = version;				
+				data['val'] = newData;
+				localStorage.setItem(name, JSON.stringify(data));
+			}
+		});
+	}
+	
+	return data['val'];
+	
+}
 
 function pagelayer_closest_corner(jEle){
 	var corners = [];
@@ -100,6 +157,114 @@ function pagelayer_closest_corner(jEle){
 	return corner;
 	
 };
+
+// Make left bar draggable
+function pagelayer_make_leftbar_movable(){
+	var pl_iframe = pagelayer.$$('.pagelayer-iframe'),
+		pl_leftbar = pagelayer.$$('.pagelayer-leftbar-table');
+
+	// On mouse down in pagelayer-topbar-holder
+	pagelayer.$$('.pagelayer-topbar-holder').on('mousedown', function(e){
+		e = e || window.event;
+		e.preventDefault();
+		
+		// Get leftbar position
+		var orig_eleX = pl_leftbar.offset().left;
+		var orig_eleY = pl_leftbar.offset().top;
+		
+		// Get the mouse cursor position at startup:
+		var posX = e.clientX;
+		var posY = e.clientY;
+		
+		// The variable needs to be empty.
+		var newMethod = '',
+		par_doc = jQuery(window.parent.document).add(document),
+		change = true;
+		
+		var leftbar_mousemove = function(e){
+			e = e || window.event;
+			
+			if(change){
+				// Add class to leftbar
+				pl_leftbar.addClass('pagelayer-leftbar-moving');
+				
+				// Add left-right overlay
+				pl_iframe.before('<div class="pagelayer-leftbar-move pagelayer-moveto-left"></div>');
+				pl_iframe.after('<div class="pagelayer-leftbar-move pagelayer-moveto-right"></div>');
+				pagelayer.$$('body').addClass('pagelayer-overflow-hidden');
+				change = false;
+			}
+					
+			// calculate the new cursor position and set the element left-top position
+			var top = orig_eleY + (e.clientY - posY);
+			var left = orig_eleX + (e.clientX - posX);
+
+			// set the element's new position:
+			pl_leftbar.css({'top': top +'px','left': left +'px'});
+			pagelayer.$$('.pagelayer-leftbar-toggle').hide();
+				
+			// Make a copy of new method
+			var _newMethod = newMethod;
+			newMethod = '';
+			
+			// Get near by corner
+			var offleft = pl_iframe.offset().left;
+			
+			if(offleft + 100 > e.clientX){
+				newMethod =  'before';
+			}else if(offleft+pl_iframe.outerWidth()- 100 < e.clientX){
+				newMethod =  'after';
+			}
+			
+			if(_newMethod != newMethod){
+				pagelayer.$$('.pagelayer-leftbar-move').css({'width' :'', 'opacity': '0.33'});
+				
+				if(newMethod == 'after'){
+					pagelayer.$$('.pagelayer-moveto-right').animate({'width' :'60px', 'opacity': '0.66'}, 200);
+					pl_leftbar.addClass('pagelayer-rightbar');
+				}else if(newMethod == 'before'){
+					pagelayer.$$('.pagelayer-moveto-left').animate({'width' : '60px', 'opacity': '0.66'}, 200);
+					pl_leftbar.removeClass('pagelayer-rightbar');
+				}
+			}
+		
+		};
+		
+		var leftbar_mouseup = function(e){
+			
+			// Remove events
+			par_doc.off('mousemove', leftbar_mousemove);
+			par_doc.off('mouseup', leftbar_mouseup);
+			
+			// Remove class to leftbar			
+			pagelayer.$$('.pagelayer-leftbar-move').remove();
+			
+			var windowHeight = jQuery(window).height();
+			
+			if(pl_leftbar.offset().top < 0){
+				pl_leftbar.css({'top': '10px'});
+			}else if( (windowHeight - e.clientY) < 10){
+				pl_leftbar.css({'top': ''+windowHeight - 40+'px'});
+			}
+			
+			if( !pagelayer_empty(newMethod)){
+				pl_leftbar.removeClass('pagelayer-leftbar-moving');
+				pl_leftbar.removeAttr('style');
+				pagelayer.$$('.pagelayer-leftbar-toggle').show();
+				pagelayer.$$('body').removeClass('pagelayer-overflow-hidden');
+				pl_iframe[newMethod](pl_leftbar);
+			}
+			
+			// make change true
+			change = true;
+		};
+		
+		par_doc.on('mouseup', leftbar_mouseup);
+		par_doc.on('mousemove', leftbar_mousemove);
+
+	});
+	
+}
 
 // Make rows and cols draggable
 function pagelayer_setup_drag(){
@@ -438,6 +603,7 @@ function pagelayer_setup_drag(){
 				var dropped;	
 				var corner = prospect.attr('pagelayer-corner');
 				var method = (corner == 'top') ? 'before' : 'after';
+				var before_loc; // Location before the drop
 				
 				// Create the element if it needs to be created
 				if(pagelayer.drag_is_new){					
@@ -445,6 +611,10 @@ function pagelayer_setup_drag(){
 				
 				// Move the object
 				}else{
+					
+					// Get near by element before move
+					before_loc = pagelayer_near_by_ele(pagelayer_id(wrap), tag);
+					
 					dropped = wrap;
 					dropped.detach();
 				}
@@ -472,6 +642,15 @@ function pagelayer_setup_drag(){
 				// Existing elements
 				}else{
 					id = pagelayer_id(wrap);
+					
+					// Save in action history
+					pagelayer_history_action_push({
+						'title' : pagelayer_shortcodes[tag]['name'],
+						'action' : 'Moved',
+						'pl_id' : id,
+						'before_loc' : before_loc,
+						'after_loc' : {'method' : method, 'cEle' : onWrap}
+					});
 				}
 				
 				// Defining the variables as needed
@@ -582,9 +761,18 @@ function pagelayer_empty_col(selector){
 			jEle.append('<div class="pagelayer-add-ele pagelayer-ele-wrap"><i class="fa fa-plus"><br /><span>Empty column please Drag Widgets</span></i></div>');			
 			//var h = jEle.parent().parent().children('.pagelayer-ele-overlay').height();
 			//jEle.children('.pagelayer-add-ele').height(h);
+			jEle.find('>.pagelayer-add-ele .fa').unbind('click');
+			jEle.find('>.pagelayer-add-ele .fa').on('click', function(event){
+				event.stopPropagation();
+				pagelayer.$$('.pagelayer-elpd-close').click();
+				
+				// Show left bar
+				pagelayer.$$('.pagelayer-leftbar-table').removeClass('pagelayer-leftbar-hidden pagelayer-leftbar-minimize');
+				
+			});
 			
 		// Any add ele sign with non-empty columns here ?
-		}else if(jEle.children('.pagelayer-add-ele').length > 0){
+		}else if(jEle.children('.pagelayer-add-ele').length > 0 && jEle.children().length > 1){
 			jEle.children('.pagelayer-add-ele').remove();
 		}
 		
@@ -632,11 +820,7 @@ function pagelayer_col_make_resizable(wrap){
 		
 	// Resize handler element
 	var rHandler = jQuery('<div class="pagelayer-resize-handler"><div class="pagelayer-resize-icon"></div></div>');
-	
-	if( wrap.is(":last-child") ){			
-		wrap = wrap.prev();	
-	}
-	
+		
 	var pResize = wrap.children('.pagelayer-ele-overlay').find('.pagelayer-resize-handler');
 	
 	if(pResize.length > 0){
@@ -666,7 +850,7 @@ function pagelayer_col_make_resizable(wrap){
 		}
 		
 		jQuery('body').css({'cursor': 'ew-resize'});
-		rHandler.show();
+		rHandler.css({'display': 'block'});
 		
 		var r_mousemove = function(e){
 			var width = original_width + (e.pageX - original_mouse_x);
@@ -885,6 +1069,9 @@ function pagelayer_element_clicked(selector, e){
 	jEle.find('[pagelayer-editable]').each(function (){
 		pagelayer_make_editable(jQuery(this), e);
 	});
+	
+	// Show left bar
+	pagelayer.$$('.pagelayer-leftbar-table').removeClass('pagelayer-leftbar-hidden pagelayer-leftbar-minimize');
 	
 	// Lets not rebuild everything to make it faster
 	if(pagelayer_is_active(jEle)){
@@ -1136,6 +1323,11 @@ function pagelayer_right_click(){
 		$contextMenu.find('.pagelayer-right-paste').attr('onclick', 'pagelayer_paste_element("[pagelayer-id='+id+']")');
 		$contextMenu.find('.pagelayer-right-delete').attr('onclick', 'pagelayer_delete_element("[pagelayer-id='+id+']")');
 		
+		// If copy_selected is empty then copy data from localStorage
+		if(pagelayer_empty(pagelayer.copy_selected)){
+			pagelayer_copy_from_localStorage();
+		}
+		
 		// Are we to hide the paste ?
 		if(!pagelayer_empty(pagelayer.copy_selected) && pagelayer_can_copy_to(jEle)){
 			//console.log(pagelayer_can_copy_to(jEle));
@@ -1187,10 +1379,10 @@ function pagelayer_set_screen_mode(mode){
 	body.addClass('pagelayer-screen-'+mode);
 	
 	// Add the class to the button
-	pagelayer.$$('.pagelayer-mode-button').removeClass('fa-'+current).addClass('fa-'+mode);
+	pagelayer.$$('.pagelayer-mode-button').removeClass('pli-'+current).addClass('pli-'+mode);
 	
 	// Add the class to the button
-	pagelayer.$$('.pagelayer-prop-screen').removeClass('fa-'+current).addClass('fa-'+mode);
+	pagelayer.$$('.pagelayer-prop-screen').removeClass('pli-'+current).addClass('pli-'+mode);
 	
 	// Trigger screen change if any
 	pagelayer.$$('.pagelayer-elp-screen').trigger('pagelayer-screen-changed');
@@ -1215,7 +1407,13 @@ jQuery(document).keydown(function(event){
 	
 	// Delete
 	if(event.keyCode == 46){
-		pagelayer_delete_element('[pagelayer-active]');
+		var tEle = jQuery(event.target);
+		
+		// Is this a delete call in the editable area ?
+		if (!tEle.is('input, textarea') && tEle.closest('[contenteditable]').length < 1) {
+			pagelayer_delete_element('[pagelayer-active]');
+		}
+		
 	}
 	
 	// ctrl+z handle
@@ -1227,6 +1425,17 @@ jQuery(document).keydown(function(event){
 	if(event.keyCode == 89 && event.ctrlKey){
 		pagelayer_do_history('redo');
 	}
+	
+	// ctrl+d handle
+	if(event.keyCode == 68 && event.ctrlKey){
+		
+		// If we have an active element
+		if( pagelayer_active.el && pagelayer_active.el.id ){
+			event.preventDefault();
+			pagelayer_copy_element('[pagelayer-id='+pagelayer_active.el.id+']');
+		}
+		
+	}
 });
 
 // Handle Copy of content
@@ -1234,16 +1443,9 @@ jQuery(document).on('copy', function(copyEvent){
 	
 	// Check the active element
 	if(pagelayer_active.el && pagelayer_active.el.id){
-		
-		copyEvent.preventDefault();
-		
-		var eHtml = jQuery("[pagelayer-id='"+pagelayer_active.el.id+"']")[0].outerHTML;
-		
-		// We need to do Empty clipboard
-		(copyEvent.originalEvent || copyEvent).clipboardData.setData('pagelayer_ele', eHtml);
-				
+						
 		// Save the active element id
-		//pagelayer_copy_select("[pagelayer-id='"+pagelayer_active.el.id+"']");
+		pagelayer_copy_select("[pagelayer-id='"+pagelayer_active.el.id+"']");
 		
 	}
 	
@@ -1256,7 +1458,7 @@ jQuery(document).on('paste', function(pasteEvent){
 	var pagelayer_ajax_func = {};
 	var contenteditable = false;
 	
-	if(pEle_target.closest('[contenteditable]').length > 0){
+	if(pEle_target.closest('[contenteditable]').length > 0 || pEle_target.is('input, textarea')){
 		pEle_target = pEle_target.closest('[contenteditable]');
 		contenteditable = true;
 	}
@@ -1324,18 +1526,15 @@ jQuery(document).on('paste', function(pasteEvent){
 	
 	var findImg = pagelayer_editable_paste_handler(pasteEvent, pagelayer_ajax_func);
 	
-	if(pagelayer_empty(findImg)){
+	if(pagelayer_empty(findImg) && pagelayer_empty(contenteditable)){
 		
 		// Check the active element
 		if(pagelayer_active.el && pagelayer_active.el.id){
 			
 			var jEle = jQuery("[pagelayer-id='"+pagelayer_active.el.id+"']");
-			
-			var copy_ele = jQuery((pasteEvent.originalEvent || pasteEvent).clipboardData.getData('pagelayer_ele'));
-			
+									
 			// Check if the any element is copied
-			if(copy_ele.length > 0 && pagelayer_can_copy_to(jEle)){
-				pagelayer.copy_selected = copy_ele;
+			if(pagelayer_can_copy_to(jEle)){
 				pagelayer_paste_element("[pagelayer-id='"+pagelayer_active.el.id+"']");
 			}
 			
@@ -1398,6 +1597,12 @@ function pagelayer_delete_element(selector){
 
 // Select an element
 function pagelayer_copy_select(selector){
+	
+	var eHtml = jQuery(selector)[0].outerHTML;
+	
+	// Copy data on localStorage
+	localStorage.setItem("pagelayer_ele", eHtml);
+	
 	pagelayer.copy_selected = selector;
 }
 
@@ -1437,6 +1642,9 @@ function pagelayer_can_copy_to(to){
 // Select an element
 function pagelayer_paste_element(to){
 	
+	// Copy data from localStorage
+	pagelayer_copy_from_localStorage();
+	
 	var fTo = pagelayer_can_copy_to(to);
 	
 	// Is it a valid to
@@ -1444,7 +1652,20 @@ function pagelayer_paste_element(to){
 		return false;
 	}
 	
-	pagelayer_copy_element(pagelayer.copy_selected, fTo);
+	if(!pagelayer_empty(pagelayer.copy_selected)){
+		pagelayer_copy_element(pagelayer.copy_selected, fTo);
+	}
+	
+	return false;
+	
+}
+
+// If copy_selected is empty then copy data from localStorage
+function pagelayer_copy_from_localStorage(){
+	if(!pagelayer_empty(localStorage.getItem("pagelayer_ele"))){
+		// Set copy data from localStorage
+		pagelayer.copy_selected = localStorage.getItem("pagelayer_ele");
+	}
 }
 
 // Copy an element
@@ -1506,6 +1727,12 @@ function pagelayer_l(k){
 	return k;
 }
 
+// Get props based on the tag
+function pagelayer_get_props(jEle){
+	var props = pagelayer_shortcodes[pagelayer_tag(jEle)];
+	return props;
+}
+
 // Set the given jELE as active
 function pagelayer_set_active(jEle){
 	
@@ -1522,6 +1749,12 @@ function pagelayer_set_active(jEle){
 	
 	jEle.parent().children('.pagelayer-ele-overlay').addClass('pagelayer-active');
 	
+	// Hide active when not supported by tag
+	var props = pagelayer_get_props(jEle);
+	if(!pagelayer_empty(props['hide_active'])){
+		jEle.parent().children('.pagelayer-ele-overlay').addClass('pagelayer-hide-active');
+	}
+	
 }
 
 function pagelayer_sc(sc){
@@ -1534,11 +1767,11 @@ function pagelayer_create_sc(sc){
 	
 	var html;
 	var _sc = pagelayer_sc(sc);
-	var func = window['pagelayer_sc_'+sc];
+	var func = window['pagelayer_create_sc_'+sc];
 	
 	// Generate the HTML
 	if(typeof func == 'function'){
-		html = window['pagelayer_sc_'+sc]();
+		html = window['pagelayer_create_sc_'+sc]();
 	}else{
 		html = '<div '+pagelayer_sc_atts('pagelayer-'+_sc)+'></div>';
 	}
@@ -1643,6 +1876,7 @@ function pagelayer_set_atts(jEle, atts, val){
 	var trigger_props = {};
 	var no_val = {};
 	var defaults = {};
+	var _props = {};
 	
 	// Loop through all props
 	for(var i in pagelayer_tabs){
@@ -1657,6 +1891,15 @@ function pagelayer_set_atts(jEle, atts, val){
 				
 				if('default' in props[x]){
 					defaults[x] = 1;
+				}
+				
+				// Create an easy REFERENCE for access
+				_props[x] = props[x];
+				
+				// Screen option REFERENCE is also needed for lookup
+				if('screen' in _props[x]){
+					_props[x+'_tablet'] = props[x];
+					_props[x+'_mobile'] = props[x];
 				}
 				
 				// Dont set any val, but we set temp value
@@ -1690,27 +1933,22 @@ function pagelayer_set_atts(jEle, atts, val){
 		
 		//console.log(x+'-'+atts[x]);
 		
+		// Is this a pro feature and we are not pro ? Then we dont do anything and continue !
+		if('pro' in _props[x] && pagelayer_empty(pagelayer_pro)){
+			continue;
+		}
+		
 		if(x in no_val){
 			pagelayer_set_tmp_atts(jEle, x, atts[x]);
 			continue;
 		}
 		
 		// Record History
-		if(pagelayer.history_action){
-			var attr_label = '';
-			for(var section in all_props){
-				for(var props in all_props[section]){
-					if(props == x){
-						attr_label = all_props[section][props]['label'];
-					}
-				}
-					
-			}
-				
+		if(pagelayer.history_action){				
 			var old_val = pagelayer_get_att(jEle, x) || '';
 			pagelayer_history_action_push({
 				'title' : all_props['name'],
-				'subTitle' : attr_label,
+				'subTitle' : _props[x]['label'],
 				'action' : 'Edited',
 				'attrType' : 'a_attr',
 				'pl_id' : pagelayer_id(jEle),
@@ -1866,6 +2104,17 @@ function pagelayer_css_render(css, val, seperator){
 };
 
 // Replace the variables
+function pagelayer_parse_el_vars(str, el){
+	
+	str = str.split('{{element}}').join(el.CSS.sel);
+	str = str.split('{{wrap}}').join(el.CSS.wrap);
+	str = str.split('{{ele_id}}').join(el.id);
+	
+	return str;
+
+}
+
+// Replace the variables
 function pagelayer_parse_vars(str, el){
 	
 	for(var x in el.tmp){
@@ -1887,9 +2136,9 @@ function pagelayer_sc_render(jEle){
 		//return false;
 	}
 	
-  //console.log('Rendering');
+	//console.log('Rendering');
 	
-  // Handle the CSS part
+	// Handle the CSS part
 	// Get the id, tag, atts, data, etc
 	var el = pagelayer_data(jEle, true);
 	var all_props = pagelayer_shortcodes[el.tag];
@@ -1900,7 +2149,8 @@ function pagelayer_sc_render(jEle){
 		remove_attr: [],
 		css: [],
 		edit: [],
-		sel: '[pagelayer-id="'+el.id+'"]'
+		sel: '[pagelayer-id="'+el.id+'"]',
+		wrap: '[pagelayer-wrap-id="'+el.id+'"]'
 	};
 	
 	// Create a reference
@@ -2214,7 +2464,7 @@ function pagelayer_sc_render(jEle){
 			att[1] = pagelayer_trim(att[1], '"');
 			
 			// Is it the same val ?
-			if(!node.attr(att[0]) != att[1]){				
+			if(!node.attr(att[0]) !== att[1]){
 				node.attr(att[0], att[1]);
 			}
 		}
@@ -2254,9 +2504,21 @@ function pagelayer_sc_render(jEle){
 		
 		// Loop
 		for(var c in elCSS.css){
-			var tSel = elCSS.css[c]['sel'].replace('{{element}}', elCSS.sel);
+			var tSel = pagelayer_parse_el_vars(elCSS.css[c]['sel'], el);
 			var rule = pagelayer_parse_vars(elCSS.css[c]['val'], el);
-			rules.push(tSel+'{'+rule+'}');
+			if(tSel.length > 0){
+				rules.push(tSel+'{'+rule+'}');
+			}else{
+				rules.push(pagelayer_parse_el_vars(rule, el));
+			}
+		}
+	
+		// CSS Selector overide
+		if(!pagelayer_empty(all_props['overide_css_selector'])){
+			for(var r in rules){
+				rules[r] = rules[r].split(el.CSS.sel).join(all_props['overide_css_selector']);
+				rules[r] = rules[r].split(el.CSS.wrap).join(all_props['overide_css_selector']);
+			}
 		}
 		
 		// Set the style
@@ -2292,17 +2554,40 @@ function pagelayer_is_group(tag){
 	
 }
 
+// Do action / event
+function pagelayer_trigger_action(act){
+	jQuery(document).trigger(act);
+}
+
+// Perform a function on an action / event
+function pagelayer_add_action(act, func){
+	jQuery(document).on(act, func);
+}
+
 // Save the post
 function pagelayer_save(){
 	
-	var post = pagelayer_generate_sc(pagelayer_editable);//alert(post);return;
+	pagelayer_trigger_action('pagelayer_save');
+	
 	var pagelayerajaxurl = pagelayer_ajax_url+'&action=pagelayer_save_content&postID='+pagelayer_postID;
+	var post = pagelayer_generate_sc(pagelayer_editable);//alert(post);return;
+	
+	// Do we have page properties ?
+	var jEle = jQuery(pagelayer_editable+' [pagelayer-tag=pl_post_props]');
+	var props = {};
+	if(jEle.length > 0){
+		var tmp = pagelayer_data(jEle);
+		//console.log(props);
+		props = tmp.atts;
+	}
+	
 	jQuery.ajax({
 		type: "POST",
 		url: pagelayerajaxurl,
 		data: { 
-			pagelayer_update_content : post, 
-			pagelayer_nonce: pagelayer_ajax_nonce
+			pagelayer_update_content : post,
+			pagelayer_nonce: pagelayer_ajax_nonce,
+			page_props: props
 		},
 		success: function(response, status, xhr){
 			//alert(data);
@@ -2518,14 +2803,25 @@ function pagelayer_leftbar(){
 	
 	// Toggle the holder
 	pagelayer.$$('.pagelayer-leftbar-toggle').on('click', function(){
-		pagelayer.$$('.pagelayer-leftbar-table').toggle();
+		pagelayer.$$('.pagelayer-leftbar-table').toggleClass('pagelayer-leftbar-hidden');
+		pagelayer_trigger_action('pagelayer-leftbar-toggle');
+	});
+	
+	// Close leftbar
+	pagelayer.$$('.pagelayer-leftbar-close').on('click', function(){
+		pagelayer.$$('.pagelayer-leftbar-toggle').click();
+	});
+	
+	// Minimize leftbar
+	pagelayer.$$('.pagelayer-leftbar-minimize').on('click', function(){
+		pagelayer.$$('.pagelayer-leftbar-table').toggleClass('pagelayer-leftbar-minimize');
 	});
 	
 	var html = '<div class="pagelayer-leftbar">'+
 	'<div class="pagelayer-leftbar-scroll">'+
 		'<div id="pagelayer-shortcodes" class="pagelayer-leftbar-tab pagelayer-shortcodes">'+
 			'<div class="pagelayer-leftbar-search">'+
-				'<i class="fa fa-search" /><input class="pagelayer-search-field" />'+
+				'<i class="pli pli-search" /><input class="pagelayer-search-field" /><i class="pagelayer-sf-empty pli">&times;</i>'+
 			'</div>';
 		
 	for(var x in pagelayer_groups){
@@ -2547,9 +2843,9 @@ function pagelayer_leftbar(){
 					'<center class="pagelayer-shortcode-inner">';
 					
 					if('icon' in pagelayer_shortcodes[sc]){
-						html += '<i class="pagelayer-shortcode fa fa-'+pagelayer_shortcodes[sc]['icon']+'"></i>';
+						html += '<i class="pagelayer-shortcode '+pagelayer_shortcodes[sc]['icon']+'"></i>';
 					}else{
-						html += '<i class="pagelayer-shortcode pagelayer-'+sc+'"></i>';
+						html += '<i class="pagelayer-shortcode pli pagelayer-'+sc+'"></i>';
 					}
 					
 					html += '</center>'+
@@ -2565,8 +2861,10 @@ function pagelayer_leftbar(){
 	
 	html += '</div>'+
 		'<div id="pagelayer-elpd" class="pagelayer-leftbar-tab pagelayer-elpd"></div>'+
+		'<div id="pagelayer-options" class="pagelayer-leftbar-tab pagelayer-options"></div>'+
 		'<div id="pagelayer-history" class="pagelayer-leftbar-tab pagelayer-history"></div>'+
 		'<div id="pagelayer-post-settings" class="pagelayer-leftbar-tab pagelayer-post-settings"></div>'+
+		'<div id="pagelayer-navigator" class="pagelayer-leftbar-tab pagelayer-navigator"></div>'+
 	'</div>'+
 '</div>';
 
@@ -2625,96 +2923,28 @@ function pagelayer_leftbar(){
 		pagelayer_post_settings();
 	});
 	
+	// On click search empty
+	pagelayer.$$('.pagelayer-leftbar-search>.pagelayer-sf-empty').click(function(){
+		pagelayer.$$('.pagelayer-search-field').val('').trigger('input');
+	});
+	
 };
 
 // Post setting holder
 function pagelayer_post_settings(){
 	
-	// Start pagelayer settings holder
-	var setting_holder = '<div class="pagelayer-post-settings-holder">';
+	// Is there a post settings ?
+	var jEle = jQuery(pagelayer_editable+' [pagelayer-tag=pl_post_props]');
 	
-	// Start pagelayer settings content body
-	setting_holder += '<div class="pagelayer-post-settings-acc">'+
-		'<div class="pagelayer-post-settings-lable"><span>Title</span><i class="pagelayer-toggle fa"></i></div>'+
-		'<div class="pagelayer-post-settings-fields">'+
-			'<label for="post_title">Post Title</label> '+
-			'<input type="text" name="post_title" value="'+ pagelayer_postTitle +'" id="title" spellcheck="true" autocomplete="off">'+
-			'<button class="pagelayer-post-settings-apply pagelayer-success-btn" disabled>Apply</button>'+
-		'</div>'+
-	'</div>';
+	// Could not find
+	if(jEle.length < 1){
+		jEle = pagelayer_create_sc('pl_post_props');
+		var id = pagelayer_id(jEle);
+		jQuery(pagelayer_editable).prepend(jEle);
+		pagelayer_element_setup('[pagelayer-id='+id+']');
+	}
 	
-	/*if(pagelayer_postType == pagelayer_cpt['name']){
-		setting_holder += '<div class="pagelayer-post-settings-acc">'+
-			'<div class="pagelayer-post-settings-lable"><span>Custom Template type</span><i class="pagelayer-toggle fa"></i></div>'+
-			'<div class="pagelayer-post-settings-fields">'+ pagelayer_CPT_condi +
-			'</div>'+
-		'</div>';
-	}*/
-	
-	/* if(pagelayer_support_FI){
-		setting_holder += '<div class="pagelayer-post-settings-acc">'+
-			'<div class="pagelayer-post-settings-lable"><span>Featured Image</span><i class="pagelayer-toggle fa"></i></div>'+
-			'<div class="pagelayer-post-settings-fields">Featured Image'+
-			'</div>'+
-		'</div>';
-	} */
-	
-	// End pagelayer settings content body
-	
-	// End pagelayer settings holder
-	setting_holder += '</div>';
-	var holder = pagelayer.$$('#pagelayer-post-settings');
-	holder.html(setting_holder);
-	
-	// On change input fields enable the apply button
-	holder.find('input, select, textarea').on('change input', function(){
-		jQuery(this).closest('.pagelayer-post-settings-fields').find('.pagelayer-post-settings-apply').removeAttr('disabled');
-	});
-	
-	// On click the label toggle the setting field holder
-	holder.find('.pagelayer-post-settings-lable').on('click', function(){
-		
-		var lEle = jQuery(this);
-		var lEle_next = lEle.next('.pagelayer-post-settings-fields');
-		
-		holder.find('.pagelayer-post-settings-fields').each(function(){
-			var fEle = jQuery(this);
-			if(!fEle.is(lEle_next)){
-				fEle.hide().prev('.pagelayer-post-settings-lable').find('.pagelayer-toggle').removeClass('pagelayer-open');
-			}
-		});
-		
-		lEle.next('.pagelayer-post-settings-fields').toggle();
-		lEle.find('.pagelayer-toggle').toggleClass('pagelayer-open');
-		
-	});
-	
-	// On click apply button
-	holder.find('.pagelayer-post-settings-apply').click(function(){
-		var fEle = jQuery(this).closest('.pagelayer-post-settings-fields');
-		var data = fEle.find('input, select, textarea').serialize();
-		
-		jQuery.ajax({
-			url: pagelayer_ajax_url+'action=pagelayer_save_settings&postID='+pagelayer_postID,
-			type: 'post',
-			data : 'pagelayer_nonce='+ pagelayer_ajax_nonce +'&'+ data,
-			success: function(response, status, xhr){
-			//alert(data);
-				var obj = jQuery.parseJSON(response);
-				//alert(obj);
-				if(obj['error']){
-					alert(obj['error']);
-				}else{
-					alert(obj['success']);
-					window.location.reload(); 
-				}
-			},
-			error: function(errorThrown){
-				console.log(errorThrown);
-			}
-		});
-		
-	});
+	jEle.click();
 	
 	return;
 }
@@ -2840,7 +3070,7 @@ function pagelayer_history_setup(force){
 					'<span class="pagelayer-history-action"><i> '+action+' </i></span>'+
 				'</div>'+
 				'<div class="pagelayer-history-icon">'+
-					'<span class="pagelayer-history-check fa fa-check" aria-hidden="true"></span>'+
+					'<span class="pagelayer-history-check pli pli-checkmark" aria-hidden="true"></span>'+
 				'</div>'+
 			'</div>';
 		}
@@ -2870,7 +3100,7 @@ function pagelayer_history_setup(force){
 					'</div>'+
 				'</div>'+
 				'<div class="pagelayer-revision-icon-holder">'+
-					'<i class="pagelayer-revision-delete fa fa-times"></i>'+ 
+					'<i class="pagelayer-revision-delete pli pli-cross"></i>'+ 
 				'</div>'+
 			'</div>';
 		}
@@ -3093,6 +3323,20 @@ function pagelayer_history_action_setup(current_item_id, prev_item_id){
 		
 	};
 	
+	// Move element
+	var pagelayer_move_ele = function(id, move_loc){
+		var eWrap = pagelayer_wrap_by_id(id);
+		var pCol = eWrap.closest('.pagelayer-col-holder') || '';
+		
+		jQuery(move_loc.cEle)[move_loc.method](eWrap);
+		
+		// Ensure the column is not empty
+		if(!pagelayer_empty(pCol)){
+			pagelayer_empty_col(pCol);
+			pagelayer_empty_col(pagelayer_wrap_by_id(id).closest('.pagelayer-col-holder'));
+		}
+	}
+	
 	if(prev_item_id > current_item_id){
 		
 		// All Actions for undo here
@@ -3113,6 +3357,8 @@ function pagelayer_history_action_setup(current_item_id, prev_item_id){
 				resetup_ele(history_array);
 			}else if(action == "Copied"){
 				delete_ele(id);
+			}else if(action == "Moved"){
+				pagelayer_move_ele(id, history_array.before_loc);
 			}
 			
 		}
@@ -3142,6 +3388,8 @@ function pagelayer_history_action_setup(current_item_id, prev_item_id){
 				delete_ele(id);
 			}else if(action == "Copied"){
 				resetup_ele(history_array);
+			}else if(action == "Moved"){
+				pagelayer_move_ele(id, history_array.after_loc);
 			}
 			
 		}
@@ -3159,17 +3407,20 @@ function pagelayer_bottombar(){
 	var holder = pagelayer.$$('.pagelayer-bottombar-holder');
 	var html = '<div class="pagelayer-bottombar">'+
 		'<div class="pagelayer-bottombar-rightbuttons">'+
-			'<button class="pagelayer-update-button pagelayer-success-btn">Update</button>'+
-			'<button class="pagelayer-close-button">Close</button>'+
+			'<button data-tlite="Save Changes" class="pagelayer-update-button pagelayer-success-btn">Update</button>'+
+			'<button data-tlite="Close and Return to Admin Panel" class="pagelayer-close-button">Close</button>'+
 			'<div class="pagelayer-mode-wrapper">'+
-				'<i class="pagelayer-mode-button fa fa-desktop"></i>'+
 				'<div class="pagelayer-mode-buttons-wrapper">'+
-					'<i class="screen-mode fa fa-desktop" pagelayer-mode-data="desktop"></i>'+
-					'<i class="screen-mode fa fa-tablet" pagelayer-mode-data="tablet"></i>'+
-					'<i class="screen-mode fa fa-mobile" pagelayer-mode-data="mobile"></i>'+
+					'<i class="screen-mode pli pli-desktop" pagelayer-mode-data="desktop"></i>'+
+					'<i class="screen-mode pli pli-tablet" pagelayer-mode-data="tablet"></i>'+
+					'<i class="screen-mode pli pli-mobile" pagelayer-mode-data="mobile"></i>'+
 				'</div>'+
 			'</div>'+
-			'<i class="pagelayer-history-icon fa fa-history"></i>'+
+			'<i class="pagelayer-mode-button pli pli-desktop"></i>'+
+			'<span data-tlite="Preview Changes"><i class="pagelayer-preview pli pli-eye"></i></span>'+
+			'<span data-tlite="History and Revisions"><i class="pagelayer-history-icon pli pli-history"></i></span>'+
+			'<span data-tlite="navigator"><i class="pagelayer-navigator-icon pli pli-tree"></i></span>'+
+			//'<span data-tlite="Close and Return to Admin Panel"><i class="pagelayer-close-button fa fa-close"></i></span>'+
 		'</div>'+
 	'</div>';
 	
@@ -3199,12 +3450,218 @@ function pagelayer_bottombar(){
 		pagelayer_active = {};
 		pagelayer_history_setup();	
 	});
+	
+	holder.find('.pagelayer-navigator-icon').click(function(){
+		pagelayer.$$('.pagelayer-elpd-header').show().find('.pagelayer-elpd-title').text('Pagelayer Navigator');
+		pagelayer.$$('.pagelayer-logo').hide();
+		
+		// If the navigator tab visible, then don't setup 
+		if(!pagelayer.$$('#pagelayer-navigator').is(':visible')){
+			pagelayer_navigator_setup();
+		}
+		
+		pagelayer_leftbar_tab('pagelayer-navigator');
+		pagelayer_active = {};
+	});
+	
+	holder.find('.pagelayer-preview').click(function(){
+		
+		// If the page is not dirty
+		if(!pagelayer_isDirty){
+			
+			// Open in new tab the existing page itself
+			window.open(pagelayer_post_permalink, '_blank');
+			return;
+			
+		}
+		
+		// Get post content
+		var post = pagelayer_generate_sc(pagelayer_editable);//alert(post);return;
+		
+		pagelayer.$$('.pagelayer-body').css({'opacity' : '0.33'});
+		jQuery.ajax({
+			url: pagelayer_ajax_url+'&action=pagelayer_create_post_autosave&postID='+pagelayer_postID,
+			type: 'POST',
+			data: {
+				'pagelayer_nonce': pagelayer_ajax_nonce,
+				'pagelayer_post_content': post
+			},
+			success: function(data) {
+				var data = JSON.parse(data);
+				
+				// If there is some error
+				if(!pagelayer_empty(data['error']) || pagelayer_empty(data['id'])){
+					alert('Unable to set preview for some reason');
+					return;
+				}
+				
+				var url = data['url']+'&preview_id='+pagelayer_postID+'&preview_nonce='+
+				pagelayer_preview_nonce;
+				
+				// Open in new tab
+				window.open(url, '_blank');
+			},
+			complete: function(){
+				pagelayer.$$('.pagelayer-body').css({'opacity' : '1'});
+			}
+		});
+	});
 };
 
 
 ///////////////////////////////
 // Miscellaneuos Functions
 ///////////////////////////////
+
+// Setup navigator
+function pagelayer_navigator_setup(){
+	
+	var navigator_ele = pagelayer.$$('#pagelayer-navigator'),
+	navigator_padding = 10,
+	navigator_html = '';
+		
+	// Get the child elements list
+	var pagelayer_create_navi_list = function(selector){
+		
+		var navigator_list = '';
+		
+		selector.children('.pagelayer-ele-wrap, .pagelayer-ele').each(function(){
+			
+			var cEle = jQuery(this),
+			tag = pagelayer_tag(cEle),
+			id = pagelayer_id(cEle),
+			child_ele = false,
+			ele_class = '';
+			
+			// If tag is not found then return
+			if(pagelayer_empty(tag)){
+				return;
+			}
+			
+			// if is row or  col or inner-row
+			if(tag == 'pl_row' || tag == 'pl_col' || tag == 'pl_inner_row'){
+				ele_class = 'pagelayer-navigator-toggle';
+				child_ele = true;
+			}
+			
+			navigator_list += '<div class="pagelayer-navigetor-ele" pagelayer-id="'+id+'">'+
+				'<div class="pagelayer-ele-name '+ ele_class +'" pagelayer-tag="'+tag+'" style="padding-left:'+navigator_padding+'px">'+
+					'<i class="fa pagalayer-arrow"></i><i class="fa pagelayer-'+tag+'"></i>'+
+					pagelayer_shortcodes[tag]['name']+
+				'</div>';
+			
+			// Create the list of child element 
+			if(child_ele){
+				navigator_padding += 15; // Increment padding left for widget
+				navigator_list += pagelayer_create_navi_list( cEle.find(pagelayer_shortcodes[tag]['holder']).first() );
+				navigator_padding -= 15; // Decrement padding left for widget
+			}
+			
+			navigator_list += '</div>';
+		});
+		
+		return navigator_list;
+	}
+	
+	// Create list of all rows and their child widgets 
+	jQuery(pagelayer_editable).children('.pagelayer-wrap-row').each(function(){
+		navigator_html += pagelayer_create_navi_list(jQuery(this));
+	});
+		
+	// Put the navigator list
+	navigator_ele.html('<div class="pagelayer-leftbar-prop-body">'+navigator_html+'</div>');
+	
+	// On click toggle the element
+	navigator_ele.find('.pagelayer-ele-name').on('click', function(){
+		
+		var tEle = jQuery(this);
+		var pl_id = tEle.parent().attr('pagelayer-id'); // Get Pagelayer id
+		var jEle = pagelayer_ele_by_id(pl_id);
+		
+		// If the class "pagelayer-navigator-toggle" exist then toggle
+		if(tEle.hasClass('pagelayer-navigator-toggle')){
+			tEle.parent().toggleClass('pagelayer-navigator-open');
+		}
+		
+		// Also open all parents 
+		tEle.parent().parents('.pagelayer-navigetor-ele').addClass('pagelayer-navigator-open');
+			
+		// Set the click element active
+		navigator_ele.find('.pagelayer-ele-name').removeClass('pagelayer-navi-active');
+		tEle.addClass('pagelayer-navi-active')
+		
+		// Set the element active
+		if(jEle.length > 0){
+			//pagelayer_active.el = pagelayer_data(jEle);
+			pagelayer_set_active(jEle);
+			pagelayer_scroll_to_viewport(jEle);
+		}
+		
+	});
+	
+	// Do active ele tab open
+	if( pagelayer_active.el && pagelayer_active.el.id ){
+		navigator_ele.find('[pagelayer-id="'+pagelayer_active.el.id+'"]').children('.pagelayer-ele-name').click();
+	}
+	
+	/* var posY = 0, orig_eleY= 0;
+	
+	// On mouse down in pagelayer-ele-name
+	navigator_ele.find('.pagelayer-ele-name').on('mousedown', function(e){
+		e = e || window.event;
+		e.preventDefault();
+		
+		// Get ele position
+		orig_eleY = jQuery(this).offset().top;
+		
+		// Get the mouse cursor  at startup:
+		posY = e.clientY;
+		
+		// The variable needs to be empty.
+		newMethod = '';
+		
+		// Mouse up handler
+		var ele_mousemove = function(){
+			
+		}
+		
+		// Mouse move handler
+		var ele_mouseup = function(){
+			pagelayer.$$(document).off('mouseup', ele_mouseup);
+			pagelayer.$$(document).off('mousemove', ele_mousemove);
+		}
+		
+		pagelayer.$$(document).on('mouseup', ele_mouseup);
+		pagelayer.$$(document).on('mousemove', ele_mousemove);
+
+	}); */
+	
+	
+}
+
+// Scroll page to element view port
+function pagelayer_scroll_to_viewport(jEle, timeout, parentEle){
+	
+	var scrolled = parentEle || jQuery('html, body');
+	timeout = timeout || 500;
+	parentEle = parentEle || jQuery(window);
+	
+	setTimeout(function () {
+      var parentHeight = parentEle.height(),
+          parentScrollTop = parentEle.scrollTop(),
+          elementTop = jEle.offset().top,
+          topToCheck = elementTop - parentScrollTop;
+		  
+      if (topToCheck > 0 && topToCheck < parentHeight) {
+        return;
+      }
+
+      var scrolling = elementTop - parentHeight / 2;
+      scrolled.stop(true).animate({
+        scrollTop: scrolling
+      }, 1000);
+    }, timeout);
+}
 
 // Generates a random string of "n" characters
 function pagelayer_randstr(n, special){
@@ -3342,7 +3799,8 @@ function pagelayer_video_url(src){
 function pagelayer_add_widget(){
 	
 	html='<div class="pagelayer-add-widget-area">'+
-		'<i class="pagelayer-add-row fa fa-plus-circle"></i>'+
+		'<button class="pagelayer-add-button pagelayer-add-section"><i class="pagelayer-add-row fa fa-file-text"></i> &nbsp;Add New Section</button>'+
+		'<button class="pagelayer-add-button pagelayer-add-row"><i class="pagelayer-add-row fa fa-plus-circle"></i> &nbsp;Add New Row</button>'+
 		'<p>Click here to add new row OR drag widgets</p>'+
 	'</div>';
 	
@@ -3393,6 +3851,12 @@ function pagelayer_add_widget(){
 		add_sc('pl_col');
 	});
 	
+	// Handle Click
+	add_area.find('.pagelayer-add-section').on('click', function(e){
+		e.stopPropagation();
+		pagelayer_add_section_area();// Setup and show sections modal
+	});
+	
 	// Handle Drag over
 	add_area.on('dragover', function(e){
 		//console.log(e)
@@ -3426,6 +3890,169 @@ function pagelayer_add_widget(){
 		
 		add_sc(tag);
 	});
+};
+
+// Append section modal into body
+function pagelayer_add_section_area(){
+	
+	var body = pagelayer.$$('body');
+	var mEle = body.find('.pagelayer-add-section-modal-container');
+	
+	if(mEle.length > 0){
+		mEle.show();
+		return;
+	}
+	
+	var section_modal = '<div class="pagelayer-add-section-modal-container">'+
+		'<div class="pagelayer-add-section-modal-holder">'+
+			'<div class="pagelayer-add-section-modal">'+
+				'<div class="pagelayer-add-section-modal-header">'+
+					'<i class="pagelayer-add-section-modal-close">&times;</i>'+
+					'<span>Add Sections</span>'+
+				'</div>'+
+				'<div class="pagelayer-add-section-modal-body">'+
+				'</div>'+
+				'<div class="pagelayer-add-section-modal-overlay" style="display:none;">'+
+					'<div class="pagelayer-section-wait">'+
+						'<i class="fa fa-spinner fa-spin"></i><br/><span>Please wait a moment</span>'+
+					'</div>'+
+				'</div>'+
+			'</div>'+
+		'</div>'+
+	'</div>';
+	
+	mEle = jQuery(section_modal);
+	
+	// Append the element in the body
+	body.append(mEle);
+	
+	// On click close modal 
+	mEle.find('.pagelayer-add-section-modal-close').on('click', function(){
+		mEle.hide();
+	});
+	
+	// Append the list items into modal body
+	pagelayer_add_sections_list_setup();
+	
+	mEle.show();// Show the modal
+	
+};
+
+// Append section list into modal body
+function pagelayer_add_sections_list_setup(type){
+	
+	var mEle = pagelayer.$$('.pagelayer-add-section-modal-container');
+	var add_area = jQuery('.pagelayer-add-widget-area');
+	type = type || 'section';
+	
+	var default_content = '<div style="display:inline-block;position:absolute;top:0;left:0;right:0;text-align:center;"><h1>Coming Soon</h1>'+
+		'<span>We will soon add some pre-defined '+type+' layouts which you can add to your post with just one click !</span>'+
+	'</div>';
+	
+	// Set coming soon
+	mEle.find('.pagelayer-add-section-modal-body').html(default_content);
+	return;
+	
+	// Create list of items
+	var pagelayer_section_list = function(){
+		
+		var section_html = '';
+		var data = pagelayer_add_section_data[type];
+		
+		// Get data form pagelayer_add_section_data object to create list
+		for(var section in data['list']){
+			
+			var id = data['list'][section];
+			
+			section_html += '<div class="pagelayer-section-item" pagelayer-add-section-id="'+ id +'">'+
+			'<img src="'+ data['image_url'] + id +'.png" alt="Pagelayer code screenshot">'+
+			'</div>';
+			
+		}
+				
+		// Create items list
+		mEle.find('.pagelayer-add-section-modal-body').html(section_html);
+		mEle.find('.pagelayer-section-item').unbind('click');
+		mEle.find('.pagelayer-section-item').on('click', function(e){
+			pagelayer_section_item_clickable(jQuery(this));
+		});
+		
+	};	
+	
+	// On click items
+	var pagelayer_section_item_clickable = function(jEle){
+		
+		var section_id = jEle.attr('pagelayer-add-section-id');
+		
+		// IF section id not found
+		if(pagelayer_empty(section_id)){
+			return false;
+		}
+		
+		// Show the overlay
+		mEle.find('.pagelayer-add-section-modal-overlay').show();
+		
+		// Do shortcode the content
+		jQuery.ajax({
+			url: pagelayer_ajax_url+'&action=pagelayer_get_section_shortcodes&postID='+pagelayer_postID,
+			type: 'POST',
+			data: {
+				'pagelayer_nonce': pagelayer_ajax_nonce,
+				'pagelayer_section_id': section_id,
+				'pagelayer-live': 1
+			},
+			success: function(data) {	
+				
+				var data = JSON.parse(data);
+				var cEle = jQuery(data['code']);
+				
+				// Add section before add widget area
+				add_area.before(cEle);
+				
+				// We need to it setup
+				cEle.each(function(){
+					var pl_id = pagelayer_id(jQuery(this));
+					
+					if(!pagelayer_empty(pl_id)){
+						pagelayer_element_setup('[pagelayer-id="'+pl_id+'"], [pagelayer-id='+pl_id+'] .pagelayer-ele', true);
+					}
+				});
+				
+			},
+			complete: function(){
+				mEle.find('.pagelayer-add-section-modal-overlay').hide();
+				mEle.hide();
+			}
+		});	
+	}
+	
+	// Load the data if not there
+	if(!(type in pagelayer_add_section_data)){
+	
+		// Get the sections list data and append it
+		jQuery.ajax({
+			url: pagelayer_api_url+'/library.php?give='+type,
+			type: 'post',
+			success: function(response){
+				var tmp = JSON.parse(response);
+				
+				// Is the list there ?
+				if( !('list' in tmp && !pagelayer_empty(tmp['list'])) ){
+					return;
+				}
+				
+				pagelayer_add_section_data[type] = tmp;
+				
+				// Create the Type
+				pagelayer_section_list(type);
+				
+			}
+		});
+	
+	// We have the data, so show it
+	}else{
+		pagelayer_section_list(type);
+	}
 }
 
 // On editable area image paste handler
@@ -3544,3 +4171,14 @@ function pagelayer_parse_theme_vars(img_url){
 	
 	return img_url;
 };
+
+// Tooltip Setup for Editor
+function pagelayer_tooltip_setup(){	
+	//pagelayer.$$('[data-tlite]').each(function(){pagelayer_tlite.show(jQuery(this).get(0));});return;
+	pagelayer.$$('[data-tlite]').on('hover', function(){
+		pagelayer_tlite.show(jQuery(this).get(0));
+	}).on('mouseleave', function(){
+		pagelayer_tlite.hide(jQuery(this).get(0));
+	});
+	
+}

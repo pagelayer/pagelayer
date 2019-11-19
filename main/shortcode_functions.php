@@ -58,6 +58,7 @@ function pagelayer_render_shortcode($atts, $content = '', $tag = ''){
 	$el['tag'] = $final_tag;
 	$el['content'] = $content;
 	$el['selector'] = '[pagelayer-id="'.$el['id'].'"]';
+	$el['wrap'] = '[pagelayer-wrap-id="'.$el['id'].'"]';
 	
 	$innerHTML = @$pagelayer->shortcodes[$tag]['innerHTML'];
 	if(!empty($innerHTML) && !empty($content)){
@@ -158,6 +159,16 @@ function pagelayer_render_shortcode($atts, $content = '', $tag = ''){
 					$el['edit'][$prop] = $param['edit'];
 				}
 				
+				// Backward compatibility of Icons
+				if($param['type'] == 'icon' && !empty($el['atts'][$prop]) && !preg_match('/\s/', $el['atts'][$prop])){
+					$el['atts'][$prop] = $el['oAtts'][$prop] = 'fa fa-'.$el['atts'][$prop];
+				}
+				
+				// Backward compatibility of Box Shadow
+				if($param['type'] == 'box_shadow' && !empty($el['atts'][$prop]) && substr_count($el['atts'][$prop], ',') == 3){
+					$el['atts'][$prop] = $el['oAtts'][$prop] = $el['atts'][$prop].',0,';
+				}
+				
 				// Load any attachment values
 				if(in_array($param['type'], ['image', 'video', 'audio', 'media'])){
 					
@@ -231,7 +242,8 @@ function pagelayer_render_shortcode($atts, $content = '', $tag = ''){
 						foreach($param['css'] as $k => $v){
 							
 							// Make the selector
-							$selector = (!is_numeric($k) ? str_replace('{{element}}', $el['selector'], $k) : $el['selector']);
+							$selector = (!is_numeric($k) ? $k : $el['selector']);
+							$selector = pagelayer_parse_el_vars($selector, $el);
 							
 							$ender = '';
 							
@@ -245,8 +257,12 @@ function pagelayer_render_shortcode($atts, $content = '', $tag = ''){
 								$ender = '}';
 							}
 							
+							if(!empty($selector)){
 							// Make the CSS
-							$el['css'][] = $selector.'{'.pagelayer_css_render($v, $el['atts'][$M_prop], @$param['sep']).'}'.$ender;
+								$el['css'][] = $selector.'{'.pagelayer_css_render($v, $el['atts'][$M_prop], @$param['sep']).'}'.$ender;
+							}else{
+								$el['css'][] = pagelayer_parse_el_vars($el['atts'][$M_prop],$el);
+							}
 						}
 					
 					}
@@ -446,6 +462,11 @@ function pagelayer_render_shortcode($atts, $content = '', $tag = ''){
 		$style = '<style pagelayer-style-id="'.$el['id'].'">
 '.implode("\n", pagelayer_parse_vars($el['css'], $el)).'
 </style>';
+	
+		if(!empty($pagelayer->shortcodes[$tag]['overide_css_selector'])){
+			$style = str_replace($el['selector'], $pagelayer->shortcodes[$tag]['overide_css_selector'], $style);
+			$style = str_replace($el['wrap'], $pagelayer->shortcodes[$tag]['overide_css_selector'], $style);
+		}
 		
 	}
 	
@@ -495,6 +516,22 @@ function pagelayer_var($var){
 	return substr($var, 2, -2);
 }
 
+// Replace the variables
+function pagelayer_parse_el_vars($str, &$el){
+	
+	$str = str_replace('{{element}}', $el['selector'], $str);
+	$is_live = pagelayer_is_live();
+	if(!empty($is_live)){
+		$str = str_replace('{{wrap}}', $el['wrap'], $str);
+	}else{
+		$str = str_replace('{{wrap}}', $el['selector'], $str);
+	}
+	$str = str_replace('{{ele_id}}', $el['id'], $str);
+	
+	return $str;
+
+}
+
 // Parse the variables
 function pagelayer_parse_vars($str, &$el){
 	
@@ -535,8 +572,35 @@ function pagelayer_css_render($rule, $val, $sep = ','){
 	
 }
 
+// Post Property Handler
+function pagelayer_sc_body(&$el){
+	
+	global $post;
+	
+	$el['oAtts']['post_title'] = $post->post_title;
+	$el['oAtts']['post_name'] = $post->post_name;
+	$el['oAtts']['post_excerpt'] = $post->post_excerpt;
+	$el['oAtts']['post_status'] = $post->post_status;
+	$el['oAtts']['featured_image'] = get_post_thumbnail_id($post);
+	
+	// Load featured image details
+	if(!empty($el['oAtts']['featured_image'])){
+		
+		$attachment = pagelayer_image($el['oAtts']['featured_image']);
+
+		if(!empty($attachment)){
+			foreach($attachment as $k => $v){
+				$el['tmp']['featured_image-'.$k] = $v;
+			}
+		}
+	
+	}
+	
+}
+
 // ROW Handler
 function pagelayer_sc_row(&$el){
+	
 	pagelayer_bg_video($el);
 	
 	if(!empty($el['atts']['row_shape_type_top'])){
@@ -547,6 +611,28 @@ function pagelayer_sc_row(&$el){
 	if(!empty($el['atts']['row_shape_type_bottom'])){
 		$path_bottom = PAGELAYER_DIR.'/images/shapes/'.$el['atts']['row_shape_type_bottom'].'-bottom.svg';
 		$el['atts']['svg_bottom'] = file_get_contents($path_bottom);
+	}
+	
+	// Row background slider
+	if(!empty($el['atts']['bg_slider'])){
+		$ids = explode(',', $el['atts']['bg_slider']);
+		$urls = [];
+		$el['atts']['slider'] = '';
+		
+		// Make the image URL
+		foreach($ids as $k => $v){
+			
+			$image = pagelayer_image($v);
+			$urls['i'.$v] = @$image['full-url'];
+			
+			$el['atts']['slider'] .= '<div class="pagelayer-bgimg-slide" style="background-image:url(\''.$image['full-url'].'\')"></div>';
+			
+		}
+		
+		if(!empty($urls)){
+			$el['tmp']['bg_slider-urls'] = json_encode($urls);
+		}
+		
 	}
 }
 
@@ -623,67 +709,10 @@ function pagelayer_bg_video(&$el){
 	}
 }
 
-// Heading
-function pagelayer_sc_heading($atts, $content = '', $tag = ''){
-	//return '<div '.pagelayer_create_sc($tag, $atts, 'pagelayer-text').'>'.$content.'</div>';
-}
-
-// Text
-function pagelayer_sc_text($atts, $content = '', $tag = ''){
-	//return '<div '.pagelayer_create_sc($tag, $atts, 'pagelayer-text').'>'.$content.'</div>';
-}
-
-// Rich Text Handler
-function pagelayer_sc_code($atts, $content = '', $tag = ''){
-	//return '<div '.pagelayer_create_sc($tag, $atts, 'pagelayer-text').'>'.$content.'</div>';
-}
-
-// List Handler
-function pagelayer_sc_list($atts, $content = '', $tag = ''){
-	return;
-	$items = [];
-	$list = $list_type = $icon_type = $icon_color = $text_color = $ul = $ol = $type = '';
-	$i_item = '';
-	if($atts['items']){
-		$items = preg_split('/\r\n|\r|\n/', ($atts['items']));
-	}
-	
-	$list_type = $atts['list_type'];
-	$ul = array('circle', 'disc', 'square', 'armenian', 'georgian');
-	$ol = array('decimal', 'decimal-leading-zero', 'lower-latin', 'lower-roman', 'lower-greek', 'upper-latin', 'upper-roman');
-	
-	$icon_type = $atts['icon'];
-	$icon_color = $atts['icon_color'];
-	$text_color = $atts['text_color'];
-	
-	if(in_array($list_type, $ul)){
-		
-		$type = 'ul';
-	}
-	
-	if(in_array($list_type, $ol)){
-		$type = 'ol';
-	}
-	
-	if($list_type == 'icon'){
-		$type = 'ul';
-		$i_item = '<i class="'.$icon_type .'" style="color:'. $icon_color .'"></i>';
-	}
-	if($list_type == 'none'){
-		$type = 'undefined';
-	}
-	
-	$list = '<'. $type .' class="pagelayer-list-item">';
-	
-	foreach($items as $x){
-		$list .= '<li class="pagelayer-list-'.$list_type.'" >'. $i_item .'<span style="color:'. $text_color .'">'.$x.'</span></li>';
-		
-	}
-	
-	$list .= '</'. $type .'>';
-	
-	
-	return '<div '.pagelayer_create_sc($tag, $atts, 'pagelayer-list').'>'.$list.'</div>';
+// Image Handler
+function pagelayer_sc_social(&$el){
+	$icon = explode(' fa-', $el['atts']['icon']);
+	$el['classes'][] = ['.pagelayer-icon-holder' => 'pagelayer-'.$icon[1]];
 }
 
 // Image Handler
