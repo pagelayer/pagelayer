@@ -593,7 +593,7 @@ function pagelayer_image($id){
 	// External image ?
 	if(pagelayer_is_external_img($id)){
 
-		$ret['full-url'] = $id;
+		$ret['url'] = $id;
 
 	// Attachment
 	}elseif(!empty($id)){
@@ -637,12 +637,15 @@ function pagelayer_image($id){
 
 	}
 
-	// No image
-	if(empty($ret['full-url'])){
-		$ret['full-url'] = PAGELAYER_URL.'/images/default-image.png';
+	// First preference to full url
+	if(!empty($ret['full-url'])){
+		$ret['url'] = $ret['full-url'];
 	}
 
-	$ret['url'] = $ret['full-url'];
+	// No image
+	if(empty($ret['url'])){
+		$ret['url'] = PAGELAYER_URL.'/images/default-image.png';
+	}
 	
 	$ret = apply_filters('pagelayer_image', $ret);
 
@@ -698,7 +701,8 @@ function pagelayer_attachment($id){
 function pagelayer_video_url($source){
 
 	if (!empty($source)) {
-		$source = filter_var($source, FILTER_SANITIZE_URL);
+		
+		$source = esc_url( $source );
 		$source = str_replace('&amp;', '&', $source);
 		$url = parse_url($source);
 		$videoSite ='';
@@ -1065,7 +1069,20 @@ function pagelayer_image_sizes(){
 	return $ret;
 }
 
+function pagelayer_remove_excerpt_more($more){
+	return '';
+}
+
 function pagelayer_posts($params, $args = []){
+	
+	if($params['exc_length']){
+		$exc_length = (int) $params['exc_length'];
+		add_filter( 'excerpt_length', function($length) use($exc_length){
+			return $exc_length;
+		}, 999 );
+	}
+		
+	add_filter('excerpt_more', 'pagelayer_remove_excerpt_more', 999);
 	
 	// If args is empty
 	if(empty($args)){
@@ -1074,13 +1091,6 @@ function pagelayer_posts($params, $args = []){
 			'posts_per_page' => $params['posts_per_page'],
 			'order' => $params['order']
 		);
-		
-		if($params['exc_length']){
-			$exc_length = (int) $params['exc_length'];
-			add_filter( 'excerpt_length', function($length) use($exc_length){
-				return $exc_length;
-			}, 999 );
-		}
 		
 		if($params['term']){
 			
@@ -1214,7 +1224,7 @@ function pagelayer_posts($params, $args = []){
 			
 		}
 		if(isset($params['comments'])){
-			$data .= '<span class="pagelayer-wposts-comments"><i class="far fa-comment" /><a href="' . esc_url( get_permalink() ) . '">' . esc_html(get_comments_number()) . '</a></span>'.$sep;
+			$data .= '<span class="pagelayer-wposts-comments"><i class="far fa-comment"></i><a href="' . esc_url( get_permalink() ) . '">' . esc_html(get_comments_number()) . '</a></span>'.$sep;
 		}
 		
 		$data .= '</div>';
@@ -1230,7 +1240,23 @@ function pagelayer_posts($params, $args = []){
 		}
 		
 		if(isset($params['show_more'])){
-			$data .= '<a class="pagelayer-wposts-more" href="'. get_the_permalink().'">'.$params['more'].'</a>';
+			$data .= '<div class="pagelayer-wposts-mdiv"><a class="pagelayer-wposts-more pagelayer-btn-holder pagelayer-ele-link '.$params['btn_type'].' '.$params['size'].' '.$params['icon_position'].'" href="'. get_the_permalink().'">';
+			
+			if($params['icon']){
+				$data .= '<i class="'.$params['icon'].' pagelayer-btn-icon"></i>';
+			}
+			
+			if($params['more']){
+				$data .= '<span class="pagelayer-btn-text">'.$params['more'].'</span>';
+			}
+			
+			if($params['icon']){
+				$data .= '<i class="'.$params['icon'].' pagelayer-btn-icon"></i>';
+			}
+			
+			$data .= '</a></div>';
+			
+			//$data .= '<a class="pagelayer-wposts-more" href="'. get_the_permalink().'">'.$params['more'].'</a>';
 		}
 		
 		//$data .= '<div class="pagelayer-wposts-date"><p>'.get_the_date().'</p></div>';
@@ -1542,6 +1568,7 @@ function pagelayer_insert_content($post, &$ret){
 	
 	// Replace Vars
 	$template_vars = pagelayer_template_vars();
+	
 	foreach($template_vars as $key => $val){
 		$post['post_content'] = str_replace($key, $val, $post['post_content']);
 	}
@@ -1651,5 +1678,161 @@ function pagelayer_load_license(){
 		}
 		
 	}
+	
+}
+
+// Handle hexa to rgba and also remove alpha which is ff
+function pagelayer_hex8_to_rgba($val){
+	
+	// If opacity is ff then discard ff
+	if(preg_match('/^#([a-f0-9]{6})ff$/is', $val)){
+		return substr($val, 0, 7);
+	}
+	
+	// Lets handle the RGB+opacity
+	if(preg_match('/#([a-f0-9]{8})$/is', $val)){
+		$val = pagelayer_hex2rgba($val);
+	}
+	
+	return $val;
+	
+}
+
+// Convert to RGBA from HEX
+function pagelayer_hex2rgba($color){
+ 
+	//Return if no color provided
+	if(empty($color)){
+		return;
+	}
+	
+	//Sanitize $color if "#" is provided 
+	if ($color[0] == '#'){
+		$color = substr( $color, 1 );
+	}
+	
+	//Check if color has 6 or 3 characters and get values
+	if (strlen($color) == 8) {
+		$hex = array( $color[0] . $color[1], $color[2] . $color[3], $color[4] . $color[5] );
+		$alpha = $color[6] . $color[7];
+		//$alpha = '';
+	} elseif (strlen($color) == 6) {
+		$hex = array( $color[0] . $color[1], $color[2] . $color[3], $color[4] . $color[5] );
+	} elseif ( strlen( $color ) == 3 ) {
+		$hex = array( $color[0] . $color[0], $color[1] . $color[1], $color[2] . $color[2] );
+	} else {
+		return;
+	}
+ 
+	//Convert hexadec to rgb
+	$rgb =  array_map('hexdec', $hex);
+
+	//Check if opacity is set(rgba or rgb)
+	if($alpha){
+		
+		$alpha = number_format((float)hexdec($alpha) / 255, 2, '.', '');
+		//print_r($alpha);
+		if(abs($alpha) > 1){
+			$alpha = 1.0;
+		}
+		$output = 'rgba('.implode(",",$rgb).','.$alpha.')';
+	} else {
+		$output = 'rgb('.implode(",",$rgb).')';
+	}
+
+	//Return rgb(a) color string
+	return $output;
+}
+
+// Get social URLs
+function pagelayer_get_social_urls(){
+	
+	$urls = array();
+	
+	$urls['facebook'] = get_option('pagelayer-facebook-url');
+	$urls['twitter'] = get_option('pagelayer-twitter-url');
+	$urls['instagram'] = get_option('pagelayer-instagram-url');
+	$urls['linkedin'] = get_option('pagelayer-linkedin-url');
+	$urls['youtube'] = get_option('pagelayer-youtube-url');
+	$urls['google'] = get_option('pagelayer-gplus-url');
+	
+	foreach($urls as $k => $v){
+		if(empty($v)) unset($urls[$k]);
+	}
+	
+	return $urls;
+}
+
+function pagelayer_get_option($opt){
+	$ret = get_option($opt);
+	
+	$opts = array('pagelayer-address' => '1, My Address, My Street, New York City, NY, USA',
+				'pagelayer-phone' => '+1234567890',
+				'pagelayer-copyright' => '© '.date('Y').' '.get_option('blogname'),
+				'pagelayer_cf_to_email' => 'contact@domain.com');
+	
+	if(empty($ret)){
+		return $opts[$opt];
+	}
+	
+	return $ret;
+}
+
+// Uploads an image / media
+function pagelayer_upload_media($filename, $blob){
+	
+	$md5 = md5($blob);
+	
+	// Do we have this image
+	$args = array(
+		'post_type' => 'attachment',
+		'post_status' => 'inherit',
+		'meta_query' => array(
+			array(
+				'key'     => 'pagelayer_image_md5',
+				'value'   => $md5,
+			)
+		)
+	);
+			
+	$query = new WP_Query($args);
+	
+	// If we found the image, return
+	foreach($query->posts as $ck => $cv){
+		return $cv->ID;
+	}
+	
+	$upload = wp_upload_bits($filename, null, $blob);
+
+	if( !empty( $upload['error'] ) ) {
+		return false;
+	}
+
+	$file_path = $upload['file'];
+	$file_name = basename( $file_path );
+	$file_type = wp_check_filetype( $file_name, null );
+	$attachment_title = sanitize_file_name( pathinfo( $file_name, PATHINFO_FILENAME ) );
+	$wp_upload_dir = wp_upload_dir();
+
+	$post_info = array(
+		'guid'           => $wp_upload_dir['url'] . '/' . $file_name,
+		'post_mime_type' => $file_type['type'],
+		'post_title'     => $attachment_title,
+		'post_content'   => '',
+		'post_status'    => 'inherit',
+	);
+
+	$attach_id = wp_insert_attachment( $post_info, $file_path, $parent_post_id );
+	update_post_meta($attach_id, 'pagelayer_image_md5', $md5);	
+	
+	$lib = ABSPATH . 'site-admin/includes/image.php';
+	$lib = file_exists($lib) ? $lib : ABSPATH . 'wp-admin/includes/image.php';
+	
+	require_once($lib);
+	
+	$attach_data = wp_generate_attachment_metadata( $attach_id, $file_path );
+	wp_update_attachment_metadata( $attach_id,  $attach_data );
+	
+	return $attach_id;
 	
 }

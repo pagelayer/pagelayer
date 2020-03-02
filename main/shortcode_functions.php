@@ -53,12 +53,18 @@ function pagelayer_render_shortcode($atts, $content = '', $tag = ''){
 	$el = [];
 	$el['atts'] = $atts;
 	$el['oAtts'] = $atts;
-	$el['id'] = pagelayer_RandomString(16);
+	$el['id'] =  !empty($atts['pagelayer-id']) ? $atts['pagelayer-id'] : pagelayer_RandomString(16);
 	$el['tmp'] = [];
 	$el['tag'] = $final_tag;
 	$el['content'] = $content;
 	$el['selector'] = '[pagelayer-id="'.$el['id'].'"]';
 	$el['wrap'] = '[pagelayer-wrap-id="'.$el['id'].'"]';
+	
+	// Remove pagelayer-id from attr
+	if( !empty($atts['pagelayer-id']) ){
+		unset($el['atts']['pagelayer-id']);
+		unset($el['oAtts']['pagelayer-id']);
+	}
 	
 	$innerHTML = @$pagelayer->shortcodes[$tag]['innerHTML'];
 	if(!empty($innerHTML) && !empty($content)){
@@ -159,6 +165,15 @@ function pagelayer_render_shortcode($atts, $content = '', $tag = ''){
 					$el['edit'][$prop] = $param['edit'];
 				}
 				
+				// Backward compatibility of row
+				if($el['tag'] == 'pl_row' && $prop == 'content_pos' && !empty($el['atts'][$prop])){
+					if($el['atts'][$prop] == 'baseline'){
+						$el['atts'][$prop] = $el['oAtts'][$prop] = 'flex-start';
+					}else if($el['atts'][$prop] == 'end'){
+						$el['atts'][$prop] = $el['oAtts'][$prop] = 'flex-end';
+					}
+				}
+				
 				// Backward compatibility of Icons
 				if($param['type'] == 'icon' && !empty($el['atts'][$prop]) && !preg_match('/\s/', $el['atts'][$prop])){
 					$el['atts'][$prop] = $el['oAtts'][$prop] = 'fa fa-'.$el['atts'][$prop];
@@ -167,6 +182,11 @@ function pagelayer_render_shortcode($atts, $content = '', $tag = ''){
 				// Backward compatibility of Box Shadow
 				if($param['type'] == 'box_shadow' && !empty($el['atts'][$prop]) && substr_count($el['atts'][$prop], ',') == 3){
 					$el['atts'][$prop] = $el['oAtts'][$prop] = $el['atts'][$prop].',0,';
+				}
+				
+				// Backward compatibility of units. And also for the default set value if it is numeric
+				if(!empty($param['units']) && isset($el['atts'][$prop]) && is_numeric($el['atts'][$prop])){
+					$el['atts'][$prop] = $el['oAtts'][$prop] = $el['atts'][$prop].$param['units'][0];
 				}
 				
 				// Load any attachment values
@@ -248,12 +268,12 @@ function pagelayer_render_shortcode($atts, $content = '', $tag = ''){
 							$ender = '';
 							
 							if($mk == 'tablet'){
-								$selector = '@media (max-width: 768px) and (min-width: 361px){'.$selector;
+								$selector = '@media (max-width: '.$pagelayer->settings['tablet_breakpoint'].'px) and (min-width: '.($pagelayer->settings['mobile_breakpoint'] + 1).'px){'.$selector;
 								$ender = '}';
 							}
 							
 							if($mk == 'mobile'){
-								$selector = '@media (max-width: 360px){'.$selector;
+								$selector = '@media (max-width: '.$pagelayer->settings['mobile_breakpoint'].'px){'.$selector;
 								$ender = '}';
 							}
 							
@@ -558,13 +578,13 @@ function pagelayer_css_render($rule, $val, $sep = ','){
 	$sep = empty($sep) ? ',' : $sep;
 	
 	// Replace the val
-	$rule = str_replace('{{val}}', $val, $rule);
+	$rule = str_replace('{{val}}', pagelayer_hex8_to_rgba($val), $rule);
 	
 	// If there is an array
 	if(preg_match('/\{val\[\d/is', $rule)){
 		$val = explode($sep, $val);
 		foreach($val as $k => $v){
-			$rule = str_replace('{{val['.$k.']}}', $v, $rule);
+			$rule = str_replace('{{val['.$k.']}}', pagelayer_hex8_to_rgba($v), $rule);
 		}
 	}
 	
@@ -623,9 +643,9 @@ function pagelayer_sc_row(&$el){
 		foreach($ids as $k => $v){
 			
 			$image = pagelayer_image($v);
-			$urls['i'.$v] = @$image['full-url'];
+			$urls['i'.$v] = @$image['url'];
 			
-			$el['atts']['slider'] .= '<div class="pagelayer-bgimg-slide" style="background-image:url(\''.$image['full-url'].'\')"></div>';
+			$el['atts']['slider'] .= '<div class="pagelayer-bgimg-slide" style="background-image:url(\''.$image['url'].'\')"></div>';
 			
 		}
 		
@@ -646,6 +666,28 @@ function pagelayer_sc_col(&$el){
 	
 	pagelayer_bg_video($el);
 	
+	// Column background slider
+	if(!empty($el['atts']['bg_slider'])){
+		$ids = explode(',', $el['atts']['bg_slider']);
+		$urls = [];
+		$el['atts']['slider'] = '';
+		
+		// Make the image URL
+		foreach($ids as $k => $v){
+			
+			$image = pagelayer_image($v);
+			$urls['i'.$v] = @$image['url'];
+			
+			$el['atts']['slider'] .= '<div class="pagelayer-bgimg-slide" style="background-image:url(\''.$image['url'].'\')"></div>';
+			
+		}
+		
+		if(!empty($urls)){
+			$el['tmp']['bg_slider-urls'] = json_encode($urls);
+		}
+		
+	}
+	
 }
 
 // Just for BG handling
@@ -658,7 +700,7 @@ function pagelayer_bg_video(&$el){
 	// Get the video URL for the iframe
 	$iframe_src = pagelayer_video_url($el['tmp']['bg_video_src-url']);
 	
-	$source = filter_var($el['tmp']['bg_video_src-url'], FILTER_SANITIZE_URL);
+	$source = esc_url( $el['tmp']['bg_video_src-url'] );
 	$source = str_replace('&amp;', '&', $source);
 	$url = parse_url($source);
 
@@ -720,7 +762,7 @@ function pagelayer_sc_image(&$el){
 	
 	// Decide the image URL
 	$el['atts']['func_id'] = @$el['tmp']['id-'.$el['atts']['id-size'].'-url'];
-	$el['atts']['func_id'] = empty($el['atts']['func_id']) ? @$el['tmp']['id-full-url'] : $el['atts']['func_id'];
+	$el['atts']['func_id'] = empty($el['atts']['func_id']) ? @$el['tmp']['id-url'] : $el['atts']['func_id'];
 	
 	// What is the link ?
 	if(!empty($el['atts']['link_type'])){
@@ -761,9 +803,9 @@ function pagelayer_sc_image_slider(&$el){
 		
 		$image = pagelayer_image($v);
 		
-		$final_urls[$v] = empty($image[$size.'-url']) ? @$image['full-url'] : $image[$size.'-url'];
+		$final_urls[$v] = empty($image[$size.'-url']) ? @$image['url'] : $image[$size.'-url'];
 		
-		$urls['i'.$v] = @$image['full-url'];
+		$urls['i'.$v] = @$image['url'];
 		
 		foreach($image as $kk => $vv){
 			$si = strstr($kk, '-url', true);
@@ -834,9 +876,9 @@ function pagelayer_sc_grid_gallery(&$el){
 		
 		$image = pagelayer_image($v);
 		
-		$final_urls[$v] = empty($image[$size.'-url']) ? @$image['full-url'] : $image[$size.'-url'];
+		$final_urls[$v] = empty($image[$size.'-url']) ? @$image['url'] : $image[$size.'-url'];
 		
-		$urls['i'.$v] = @$image['full-url'];
+		$urls['i'.$v] = @$image['url'];
 		$links['i'.$v] = @$image['link'];
 		$titles['i'.$v] = @$image['title'];
 		$captions['i'.$v] = @$image['caption'];
@@ -871,7 +913,7 @@ function pagelayer_sc_grid_gallery(&$el){
 		}
 		
 		if(!empty($el['atts']['link_to']) && $el['atts']['link_to'] == 'lightbox'){			
-			$li .= '<a href="'.$image['full-url'].'" data-lightbox-gallery="'.$gallery_rand.'" alt="'.$image['alt'].'" class="pagelayer-ele-link" pagelayer-grid-gallery-type="'.$el['atts']['link_to'].'">';
+			$li .= '<a href="'.$image['url'].'" data-lightbox-gallery="'.$gallery_rand.'" alt="'.$image['alt'].'" class="pagelayer-ele-link" pagelayer-grid-gallery-type="'.$el['atts']['link_to'].'">';
 		}
 		// The Image
 		$li .= '<img class="pagelayer-img" src="'.$final_urls[$v].'" title="'.$image['title'].'" alt="'.$image['alt'].'">';
@@ -917,7 +959,7 @@ function pagelayer_sc_grid_gallery(&$el){
 function pagelayer_sc_testimonial(&$el){
 	
 	$el['atts']['func_image'] = @$el['tmp']['avatar-'.$el['atts']['custom_size'].'-url'];
-	$el['atts']['func_image'] = empty($el['atts']['func_image']) ? @$el['tmp']['avatar-full-url'] : $el['atts']['func_image'];
+	$el['atts']['func_image'] = empty($el['atts']['func_image']) ? @$el['tmp']['avatar-url'] : $el['atts']['func_image'];
 	
 	if(!empty($image)){
 		foreach($image as $k => $v){
@@ -961,7 +1003,10 @@ function pagelayer_sc_video(&$el){
 
 // Shortcodes Handler
 function pagelayer_sc_shortcodes(&$el){
-	$el['tmp']['shortcode'] = do_shortcode($el['atts']['data']);
+	$is_live = pagelayer_is_live();
+	if(empty($is_live)){
+		$el['tmp']['shortcode'] = do_shortcode($el['atts']['data']);
+	}
 }
 
 // Shortcodes Handler
@@ -987,7 +1032,7 @@ function pagelayer_sc_service(&$el){
 	
 	if(!empty($el['atts']['service_image'])){		
 		$el['atts']['func_image'] = @$el['tmp']['service_image-'.$el['atts']['service_image_size'].'-url'];
-		$el['atts']['func_image'] = empty($el['atts']['func_image']) ? @$el['tmp']['service_image-full-url'] : $el['atts']['func_image'];
+		$el['atts']['func_image'] = empty($el['atts']['func_image']) ? @$el['tmp']['service_image-url'] : $el['atts']['func_image'];
 	}
 }
 

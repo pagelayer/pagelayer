@@ -1,10 +1,10 @@
-# Page Builder: PageLayer - Drag and Drop website builder 
+* # Page Builder: PageLayer - Drag and Drop website builder 
 * Contributors: pagelayer
 * Tags: page builder, editor, landing page, drag-and-drop, pagelayer, form-builder, popup, widgets, softaculous, visual editor, wysiwyg, design, maintenance mode, coming soon, under construction, website builder, landing page builder, front-end builder, site-builder
 * Requires at least: 4.7
 * Tested up to: 5.3
-* Requires PHP: 5.4
-* Stable tag: 1.0.3
+* Requires PHP: 5.5
+* Stable tag: 1.0.7
 * License: LGPL v2.1
 * License URI: http://www.gnu.org/licenses/lgpl-2.1.html
 
@@ -108,6 +108,73 @@ Do you have questions related to PageLayer ? Use the following links :
 6. **Sections** Pagelayer has a nice grid systems with rows and columns. You can create sections so much easily with Pagelayer
 
 ## Changelog 
+
+# 1.0.7 (March 3, 2020) 
+* [Feature] The Add New Section code is now working. We have added 10 blocks and more are on the way.
+* [Task] Improved the layout of the color selector. Also when no color is selected, the color box will show blank space instead of white color.
+* [Task] Some more improvement has been done to the Pagelayer Widget Settings UI.
+
+# 1.0.6 (February 20, 2020) 
+* [Feature] Added settings for widgets - Contact Email, Phone, Address. You can specify these defaults and it will be changed throughout the website.
+* [Feature] Added keyboard options Ctrl+S to update posts.
+* [Feature] Added size and space option for the slider dots for all Slider widgets.
+* [Feature] Added screen mode options for typography and alignment in  the Contact Email, Phone and Address widgets.
+* [Premium-Feature] Added new widget for Image Portfolio.
+* [Premium-Feature] Added inline and spacing option for radio button in Contact form widget.
+* [Premium-Feature] Added dropdown breakpoint option for responsive menu in Primary Menu widget.
+* [Premium-Feature] Added pagination option in Archive Posts widget.
+* [Premium-Feature] Added padding option for content in Archive Posts and Posts widget.
+* [Premium-Feature] Added screen mode options to the Primary Menu widget where needed.
+* [Task] Now when you add a new row or inner row, a column will be added automatically.
+* [Task] The Row, Column and Elements hover UI has been improved.
+* [Task] From now on, we are saving the Pagelayer ID. So that they are consistent all the time.
+* [Task] The left panel font has been changed to Roboto to improve the UI of the left panel.
+* [Bug-Fix] In the flip box widget, the front side of the flip box was not being hidden properly when flipping. This is fixed.
+* [Bug-Fix] In the pen menu, some icons were not visible. This is fixed.
+
+# 1.0.5 (January 21, 2020) 
+* [Feature] Added new widgets - Contact Email, Phone, Address, Copyright. You can specify these defaults and it will be changed throughout the website.
+* [Feature] Added the screen mode option for the custom Column Width in Column widget.
+* [Feature] Accordian Content Padding and border radius have been added.
+* [Feature] Added breakpoint settings for Tablet and Mobiles
+* [Feature] Premium Feature - Added the feature to make an element sticky
+* [Feature] Added the option to save default Social Profile URLs. These URLs will be used while editing and can be altered while editing.
+* [Task] Now when you undo and redo, the affected element will become active and the page will also scroll to that element.
+* [Task] Added the additional parameters with pagelayer_trigger_action function in javascript.
+* [Task] For a Cite in Quotes, text align option has been added.
+* [Task] Added the option to remove the Icon selected in the icon properties.
+* [Task] In mobile/tablet view we have improved the responsive beahviour.
+* [Task] The Ctrl-z and Ctrl-y behaviour has been further improved. Now when you undo, the actions within the last 200 milli seconds will be undone.
+* [Task] Added function to get current media mode according to pagelayer tablet and mobile breackpoint in Javascript.
+* [Bug-Fix] Added overflow to accordion items to fix the overflow in some cases.
+* [Bug-Fix] Ctrl-z will now work on the entire window. Previously you had to focus back on the editor and then it would work. This is fixed.
+* [Bug-Fix] While editing the header if the Row was at 0px of the window, the row options were not visible. This is fixed.
+* [Bug-Fix] The Add New Section / Widgets area at the bottom of the content window was aligned to the right. Now its centered.
+* [Bug-Fix] The column width dragging feature had some bugs where it would not allow resize. This is fixed.
+* [Bug-Fix] The anchor overlay in the icon box / image box widgets was going wrong. This is fixed.
+* [Bug-Fix] In editor, on clicking setting and property close icons in left bar, the left bar move was triggered. This is fixed.
+* [Bug-Fix] We were not registering pagelayer actions while resizing the columns. This is fixed.
+* [Bug-Fix] In certain cases the video url was sanitize properly. This is fixed.
+* [Bug-Fix] The custom width property of the element in the options was not working properly. This is fixed.
+
+# 1.0.4 (December 12, 2019) 
+* [Feature] Added Line Height to the Rich Text Editor.
+* [Feature] Added the option to edit or delete an item from the Navigator.
+* [Feature] Added the option to set a font for the whole site.
+* [Feature] Premium Feature - Column Background Slider has been added.
+* [Feature] Premium Feature - We have created a Popup builder in Pagelayer.
+* [Task] We have added more units to various properties so that you can choose either px, %, vw, etc for the respective settings.
+* [Task] Added hover delay for Site Title.
+* [Task] The Image Selector tool UI was not proper. We have improved it.
+* [Task] The Grid Flex structure has been improved.
+* [Task] Javascript language string export in the editor is now completed.
+* [Task] The Rich Text Editor box options have been re-arranged to minimize the utilization of space.
+* [Task] More font-weight options have been added to typography options.
+* [Bug-Fix] In certain properties decimal values were not allowed. This is fixed.
+* [Bug-Fix] Color options did not work in Microsoft browsers like Edge or IE. This is fixed by using RGB when the alpha is set.
+* [Bug-Fix] Row content v-align and Column content v-align used to not work properly in some cases. This is fixed.
+* [Bug-Fix] The blank image used to exceed the element width. This is fixed.
+* [Bug-Fix] Ctrl-z in image URL option of the media box used to undo pagelayer actions. This is fixed.
 
 # 1.0.3 (November 17, 2019) 
 * [Task] We have launched Pagelayer Pro with features like 60+ widgets, 400+ sections, Theme Builder, WooCommerce Builder, Theme Creator and Exporter, Form Builder, Popup Builder, etc.

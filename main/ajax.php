@@ -231,13 +231,17 @@ function pagelayer_givejs(){
 // Shortcodes Widget Handler
 add_action('wp_ajax_pagelayer_get_section_shortcodes', 'pagelayer_get_section_shortcodes');
 function pagelayer_get_section_shortcodes(){
-
+	
+	global $pagelayer;
+	
 	// Some AJAX security
 	check_ajax_referer('pagelayer_ajax', 'pagelayer_nonce');
 	
 	$data = '';
 	if(isset($_REQUEST['pagelayer_section_id'])){
-		$data = json_decode(file_get_contents(PAGELAYER_API.'/library.php?give_id='.$_REQUEST['pagelayer_section_id']), true);
+		$get_url = PAGELAYER_API.'/library.php?give_id='.$_REQUEST['pagelayer_section_id'].(!empty($pagelayer->license['license']) ? '&license='.$pagelayer->license['license'] : '');
+		$fetch = file_get_contents($get_url);
+		$data = json_decode($fetch, true);
 	}
 	
 	if(isset($_REQUEST['postID'])){
@@ -250,6 +254,31 @@ function pagelayer_get_section_shortcodes(){
 				$GLOBALS['post'] = $post;
 			}
 		}
+	}
+	
+	// Upload the images if any in the shortcode
+	preg_match_all('/"'.preg_quote('{{pl_lib_images}}', '/').'([^"]*)"/is', $data['code'], $matches);
+	
+	foreach($matches[0] as $k => $v){
+		$image_url = trim($v, '"\'');
+		$urls[$image_url] = $image_url;
+	}
+	
+	foreach($urls as $k => $image_url){
+		
+		$file = basename($image_url);
+		$id = 0;
+		
+		// Upload this
+		if(!empty($data[$file])){
+			
+			$id = pagelayer_upload_media($file, base64_decode($data[$file]));
+			
+			if(!empty($id)){
+				$data['code'] = str_replace('"'.$image_url.'"', '"'.$id.'"', $data['code']);
+			}
+		}
+		
 	}
 
 	// Load shortcodes
@@ -1277,7 +1306,8 @@ function pagelayer_export_template(){
 			}
 		}
 		
-		file_put_contents($theme_dir.'/'.$v->post_name.'.pgl', pagelayer_export_content($v->post_content));
+		// Write the content
+		file_put_contents($theme_dir.'/'.$v->post_name.'.pgl', pagelayer_export_content($v->post_content));		
 		$conf[$v->post_name] = [
 			'type' => get_post_meta($v->ID, 'pagelayer_template_type', true),
 			'title' => $v->post_title,
@@ -1311,6 +1341,12 @@ function pagelayer_export_template(){
 			unset($v->post_content);
 			$conf['page'][$v->post_name] = $v;
 			
+			do_action('pagelayer_page_exported', $v, $theme_dir);
+			
+		}
+		
+		if(get_option('pagelayer_body_font')){
+			$conf['conf']['pagelayer_body_font'] = get_option('pagelayer_body_font');
 		}
 	
 		// Write the config

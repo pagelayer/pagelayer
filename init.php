@@ -5,8 +5,8 @@ if (!defined('ABSPATH')) exit;
 
 define('PAGELAYER_BASE', plugin_basename(PAGELAYER_FILE));
 define('PAGELAYER_PRO_BASE', 'pagelayer-pro/pagelayer-pro.php');
-define('PAGELAYER_VERSION', '1.0.3');
-define('PAGELAYER_DIR', WP_PLUGIN_DIR.'/'.basename(dirname(PAGELAYER_FILE)));
+define('PAGELAYER_VERSION', '1.0.7');
+define('PAGELAYER_DIR', dirname(PAGELAYER_FILE));
 define('PAGELAYER_SLUG', 'pagelayer');
 define('PAGELAYER_URL', plugins_url('', PAGELAYER_FILE));
 define('PAGELAYER_CSS', PAGELAYER_URL.'/css');
@@ -94,13 +94,13 @@ function pagelayer_load_plugin(){
 	// Is there any ACTION set ?
 	$pagelayer->action = pagelayer_optreq('pagelayer-action');
 
-	// Load settings
+	// Load settings 
 	$options = get_option('pagelayer_options');
-	$pagelayer->settings['post_types'] = empty($options['post_types']) ? array('post', 'page') : $options['post_types'];
-	$pagelayer->settings['css_code'] = empty($options['css_code']) ? '' : $options['css_code'];
-	$pagelayer->settings['animate'] = empty($options['animate']) ? '' : $options['animate'];
-	$pagelayer->settings['max_width'] = empty($options['max_width']) ? 1170 : $options['max_width'];
-
+	$pagelayer->settings['post_types'] = empty(get_option('pl_support_ept')) ? ['post', 'page'] : get_option('pl_support_ept');
+	$pagelayer->settings['max_width'] = (int) (empty(get_option('pagelayer_content_width')) ? 1170 : get_option('pagelayer_content_width'));
+	$pagelayer->settings['tablet_breakpoint'] = (int) (empty(get_option('pagelayer_tablet_breakpoint')) ? 768 : get_option('pagelayer_tablet_breakpoint'));
+	$pagelayer->settings['mobile_breakpoint'] = (int) (empty(get_option('pagelayer_mobile_breakpoint')) ? 360 : get_option('pagelayer_mobile_breakpoint'));
+	
 	// Load the language
 	load_plugin_textdomain('pagelayer', false, PAGELAYER_SLUG.'/languages/');
 	
@@ -179,7 +179,7 @@ function pagelayer_admin_menu() {
 	if(defined('PAGELAYER_PREMIUM')){
 
 		// Fonts link
-		add_submenu_page('pagelayer', __('Font Settings'), __('Font Settings'), $capability, 'pagelayer_fonts', 'pagelayer_page_fonts');
+		add_submenu_page('pagelayer', __('Font Settings'), __('Font Settings'), $capability, 'admin.php?page=pagelayer#settings');
 
 		// Add new template
 		add_submenu_page('pagelayer', __('Theme Templates'), __('Theme Templates'), $capability, 'edit.php?post_type=pagelayer-template');
@@ -215,6 +215,8 @@ function pagelayer_page_handler(){
 	wp_enqueue_style( 'pagelayer-admin', PAGELAYER_CSS.'/pagelayer-admin.css', array(), PAGELAYER_VERSION);
 
 	include_once(PAGELAYER_DIR.'/main/settings.php');
+	
+	pagelayer_settings_page();
 
 }
 
@@ -308,7 +310,7 @@ function pagelayer_enqueue_frontend($force = false){
 		$premium_js = '';
 		$premium_css = '';
 		if(defined('PAGELAYER_PREMIUM')){
-			$premium_js = ',chart.min.js,slick.min.js,premium-frontend.js';
+			$premium_js = ',chart.min.js,slick.min.js,premium-frontend.js,shuffle.min.js';
 			$premium_css = ',slick.css,slick-theme.css,premium-frontend.css';
 			
 			// Load this For audio widget
@@ -359,6 +361,11 @@ function pagelayer_enqueue_fonts(){
 		$url .= '|'.$font.':100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i';
 	}
 	
+	// Fetch body font if given
+	if(get_option('pagelayer_body_font')){
+		$url .= '|'.get_option('pagelayer_body_font').':100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i';
+	}
+	
 	//echo '<link href="https://fonts.googleapis.com/css?family='.$url.'" rel="stylesheet">';
 	
 	wp_register_style('pagelayer-google-font', 'https://fonts.googleapis.com/css?family='.rawurlencode($url), array(), PAGELAYER_VERSION);
@@ -368,25 +375,31 @@ function pagelayer_enqueue_fonts(){
 
 // Load any header we have
 function pagelayer_global_js(){
-	
+	global $pagelayer;
+
 	echo '<script>
 var pagelayer_ajaxurl = "'.admin_url( 'admin-ajax.php' ).'?";
 var pagelayer_ajax_nonce = "'.wp_create_nonce('pagelayer_ajax').'";
 var pagelayer_server_time = '.time().';
 var pagelayer_facebook_id = "'.get_option('pagelayer-fbapp-id').'";
+var pagelayer_settings = '.json_encode($pagelayer->settings).';
 </script>';
 
 }
 
 // We need to handle global styles
 function pagelayer_global_styles(){
-
+	
+	global $pagelayer;
+	
 	$styles = '<style id="pagelayer-global-styles" type="text/css">';
 	
-	$width  = get_option('pagelayer_content_width', '1170');
-	
 	// Style for only child row holder
-	$styles .= '.pagelayer-row-stretch-auto > .pagelayer-row-holder, .pagelayer-row-stretch-full > .pagelayer-row-holder.pagelayer-width-auto{ max-width: '.$width.'px; margin-left: auto; margin-right: auto;}';
+	$styles .= '.pagelayer-row-stretch-auto > .pagelayer-row-holder, .pagelayer-row-stretch-full > .pagelayer-row-holder.pagelayer-width-auto{ max-width: '.$pagelayer->settings['max_width'].'px; margin-left: auto; margin-right: auto;}';
+	
+	if(get_option('pagelayer_body_font')){
+		$styles .= 'body *{font-family:'.get_option("pagelayer_body_font").';}';
+	}
 	
 	$styles .= '</style>';
 	

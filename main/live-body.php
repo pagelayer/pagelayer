@@ -32,6 +32,7 @@ global $post;
 echo '
 <html>
 <head>
+	<link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet"> 
 	<link rel="stylesheet" href="'.PAGELAYER_CSS.'/givecss.php?give=pagelayer-editor.css,trumbowyg.min.css,pagelayer-icons.css&ver='.PAGELAYER_VERSION.'">';
 	
 	$icons = pagelayer_enabled_icons();
@@ -63,11 +64,11 @@ echo '
 				<td class="pagelayer-topbar-holder" valign="middle" align="center">
 					<div class="pagelayer-elpd-header" style="display:none">
 						<div class="pagelayer-elpd-close"><i class="pli pli-cross" aria-hidden="true"></i></div>
-						<div class="pagelayer-elpd-title">Edit</div>
+						<div class="pagelayer-elpd-title pagelayer-topbar-mover">Edit</div>
 					</div>
 					<div class="pagelayer-logo">
 						<span class="pagelayer-options-icon pli pli-menu" style="display:none"></span>
-						<img src="'.PAGELAYER_LOGO.'" width="32" /><span class="pagelayer-logo-text">'.PAGELAYER_BRAND_TEXT.'</span>
+						<img src="'.PAGELAYER_LOGO.'" width="32" /><span class="pagelayer-logo-text pagelayer-topbar-mover">'.PAGELAYER_BRAND_TEXT.'</span>
 						<span class="pagelayer-settings-icon pli pli-service" aria-hidden="true"></span>
 					</div>
 				</td>
@@ -81,7 +82,7 @@ echo '
 		</table>
 		<div class="pagelayer-leftbar-toggle">&lsaquo;</div>
 	</td>
-	<td class="pagelayer-iframe">
+	<td class="pagelayer-iframe" valign="top">
 		<div class="pagelayer-iframe-top-bar">';
 		do_action('pagelayer_iframe_top_bar');
 echo '

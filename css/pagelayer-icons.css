@@ -15,7 +15,7 @@
 .trumbowyg-button-group > button, 
 .trumbowyg-button-group > button:before,
 .trumbowyg-dropdown-formatting > button{
-font-family: 'pagelayer' !important;
+font-family: 'pagelayer', "Font Awesome 5 Free" !important;
 speak: none;
 font-style: normal;
 font-weight: normal;
@@ -42,6 +42,10 @@ height: 22px;
 font-size: 22px;
 line-height: 1;
 text-align: center;
+}
+
+.pagelayer-dark .pagelayer-shortcode{
+color:#fff;
 }
 
 .trumbowyg-dropdown-formatting > button:before{
@@ -535,6 +539,10 @@ content: "\f038";
 .pli-paragraph-justify:before,
 .trumbowyg-justifyFull-button:before{
 content: "\f039";
+}
+.trumbowyg-lineheight-button:before{
+content: "\e91a";
+font-size: 15px !important;
 }
 .pli-indent-increase:before {
 content: "\ea7b";

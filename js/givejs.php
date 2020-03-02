@@ -48,7 +48,8 @@ $files = array(
 		'wow.min.js',
 		'jquery-numerator.js',
 		'simpleParallax.min.js',
-		'chart.min.js'
+		'chart.min.js',
+		'shuffle.min.js'
 	);
 
 // What files to give		
@@ -94,6 +95,19 @@ if(!empty($pagelayer->shortcodes)){
 	$data .= 'pagelayer_shortcodes = '.json_encode($pagelayer->shortcodes).';'."\n\n";
 	$data .= 'pagelayer_styles = '.json_encode($pagelayer->styles).';'."\n\n";
 	$data .= 'pagelayer_groups = '.json_encode($pagelayer->groups).';'."\n\n";
+}
+
+// Add the langs as well
+preg_match_all('/pagelayer_l\([\'"](\w*)[\'"]\)/is', $data, $matches);
+if(!empty($matches[1])){
+	foreach($matches[1] as $lk => $lv){
+		$export_langs[$lv] = __pl($lv);
+	}
+}
+
+// And lang string ?
+if(!empty($export_langs)){
+	$data .= 'pagelayer_lang = '.json_encode($export_langs).';'."\n\n";
 }
 
 // Cache Control

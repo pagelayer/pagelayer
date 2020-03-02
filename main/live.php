@@ -51,7 +51,7 @@ class PageLayer_LiveEditor{
 		$scmd5 = md5(json_encode($pagelayer->shortcodes).json_encode($pagelayer->groups).json_encode($pagelayer->styles));
 		
 		// Enqueue our Editor's JS
-		wp_register_script('pagelayer-editor', admin_url( 'admin-ajax.php?action=pagelayer_givejs' ).'&give=pagelayer-editor.js,widgets.js,'.(defined('PAGELAYER_PREMIUM') ? 'premium.js,' : '').'properties.js,base-64.js,slimscroll.js,vanilla-picker.min.js,trumbowyg.js,trumbowyg.fontfamily.js,trumbowyg-pagelayer.js,trumbowyg.fontsize.min.js,pen.js,tlite.min.js&pagelayer_nonce=1&scmd5='.$scmd5, array('jquery'), PAGELAYER_VERSION);
+		wp_register_script('pagelayer-editor', admin_url( 'admin-ajax.php?action=pagelayer_givejs' ).'&give=pagelayer-editor.js,widgets.js,'.(defined('PAGELAYER_PREMIUM') ? 'premium.js,' : '').'properties.js,base-64.js,slimscroll.js,vanilla-picker.min.js,trumbowyg.js,trumbowyg.fontfamily.js,trumbowyg-pagelayer.js,pen.js,tlite.min.js&pagelayer_nonce=1&scmd5='.$scmd5, array('jquery'), PAGELAYER_VERSION);
 		wp_enqueue_script('pagelayer-editor');
 
 		// Enqueue the Editor's CSS
@@ -96,6 +96,11 @@ class PageLayer_LiveEditor{
 		$_post = clone $post;
 		unset($_post->post_content);
 		
+		// Add template type
+		if(!empty($pagelayer->template_editor)){
+			$_post->pagelayer_template_type = get_post_meta($_post->ID, 'pagelayer_template_type', true); 	
+		}
+		
 		$returnURL = (!is_page($post->ID) ? admin_url('edit.php') : admin_url('edit.php?post_type=page') );
 		
 		echo '
@@ -123,9 +128,12 @@ pagelayer_editable = ".'.(!empty($pagelayer->template_editor) ? $pagelayer->temp
 pagelayer_wp_query = '. json_encode($wp_query->query_vars) .';
 pagelayer_post =  '. @json_encode($_post) .';
 pagelayer_loaded_icons =  '.json_encode(pagelayer_enabled_icons()).';
+pagelayer_social_urls =  '.json_encode(pagelayer_get_social_urls()).';
 pagelayer_shortcodes.pl_post_props.params.post_title.default = "'.pagelayer_escapeHTML($post->post_title).'";
 pagelayer_shortcodes.pl_post_props.params.post_name.default = "'.pagelayer_escapeHTML($post->post_name).'";
+pagelayer_shortcodes.pl_post_props.params.post_status.default = "'.$_post->post_status.'";
 </script>';
+
 		
 		do_action('pagelayer_editor_wp_head');
 

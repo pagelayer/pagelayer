@@ -1,13 +1,15 @@
 
 /* Add an element box */
 .pagelayer-add-ele{
-width:100%;
 display:block;
 vertical-align:middle;
 text-align:center;
 border:1px dashed #4a4949;
 min-height:60px;
 padding:5px;
+color:#4f4f4f;
+font-size: 16px;
+line-height: 1.5;
 }
 
 .pagelayer-add-ele .fa{
@@ -22,16 +24,12 @@ color:#3e8ef7;
 
 .pagelayer-add-ele span,
 .pagelayer-add-widget-area p{
-font-family: "Open Sans", Arial,Helvetica,sans-serif;
+font-family: "Open Sans", Arial, Helvetica, sans-serif;
 }
 
 .pagelayer-empty-col{
 display:table-cell;
 }
-
-/*.pagelayer-col{
-min-height:100px;
-}*/
 
 .pagelayer-row{
 min-height:20px;
@@ -46,6 +44,14 @@ width:100%;
 position: relative;
 }
 
+/*.pagelayer-ele-option{
+min-height: 10px;
+} */
+
+.pagelayer-wrap-col{
+align-content: unset !important;
+}
+
 .pagelayer-ele-overlay{
 position: absolute;
 width: 100%;
@@ -54,14 +60,19 @@ right: 0px;
 top: 0px;
 z-index: 10;
 pointer-events:none;
+opacity: 0%;
+outline-width:0px;
 }
 
 .pagelayer-ele-hover, .pagelayer-drag-ele-hover{/* Both classes are same. but its just that during drag, we use the later */
-outline:1px solid #277CF9;
+outline:1px solid #a8a8a8;
+opacity: 100%;
+transition: transform 0.2s linear, opacity 0.2s linear;
 }
 
 .pagelayer-active{
-outline:1px solid #7460EE;
+outline:1px solid #999;
+opacity: 100%;
 }
 
 .pagelayer-hide-active{
@@ -69,13 +80,11 @@ outline: transparent !important;
 }
 
 .pagelayer-row-hover{
-outline-color:#41A85F;
-outline-width:1px;
+outline:1px solid #277CF9;
 }
 
 .pagelayer-col-hover{
-outline-color:#905101;
-outline-width:1px;
+outline:1px solid #42ADE1;
 }
 
 .pagelayer-ele-option,
@@ -95,12 +104,12 @@ pointer-events:auto;
 display:inline-block !important;
 font-size:12px !important;
 padding:4px !important;
-background:#277CF9;
-color:#fff ;
+background:#444;
+color:#fff;
 }
 
 .pagelayer-eoi:hover{
-background:#1c59b3;
+background:#222;
 cursor: pointer;
 }
 
@@ -110,20 +119,24 @@ left:calc(50% - 63px/2);
 z-index: 30;
 }
 
+.pagelayer-row-option-zero>.pagelayer-wrap-row:first-child>.pagelayer-ele-overlay .pagelayer-row-option{
+top:0;
+}
+
 .pagelayer-row-option .pagelayer-eoi{
-background:#41A85F;
+background:#277CF9;
 }
 
 .pagelayer-row-option .pagelayer-eoi:hover{
-background:#27713d;
+background:#1c59b3;
 }
 
 .pagelayer-col-option .pagelayer-eoi{
-background:#905101;
+background:#42ADE1;
 }
 
 .pagelayer-col-option .pagelayer-eoi:hover{
-background:#5a3401;
+background:#1070AA;
 }
 
 .pagelayer-col-option{
@@ -231,7 +244,7 @@ border: 2px #3e8ef7;
 border-style: dashed;
 position:relative;
 font-family: "Open Sans", Arial,Helvetica,sans-serif;
-margin:20px 0px;
+margin:20px auto;
 }
 
 .pagelayer-add-widget-area .pagelayer-add-button{
@@ -264,6 +277,9 @@ background-color: #138496;
 
 .pagelayer-add-widget-area p{
 margin: 0px !important;
+color:#4f4f4f;
+font-size: 20px;
+line-height: 1.8;
 }
 
 .pagelayer-add-widget-drag{
@@ -291,6 +307,7 @@ z-index:1000;
 height:1px;
 background:#00BCD4;
 z-index: 1000;
+width: 100%;
 }
 
 .pagelayer-drag-prospect-col{
@@ -315,7 +332,7 @@ pointer-events: all;
 }
 
 .pagelayer-resize-icon{
-background-color: #905101;
+background-color: #42ADE1;
 padding: 3px;
 border-radius: 4px;
 height:30px;
@@ -350,3 +367,15 @@ display:block;
 }
 
 /* Column resize handler icon end */
+
+/* WordPress media box CSS */
+[id^="__wp-uploader"] .screen-reader-text{
+display:none;
+}
+
+[id^="__wp-uploader"] .media-button-select{
+text-transform: uppercase;
+font-weight: 700;
+letter-spacing: 0.046875em;
+}
+/* WordPress media box CSS end */

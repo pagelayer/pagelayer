@@ -85,10 +85,29 @@ function pagelayer_data(jEle, clean){
 					
 					// Are we to set this value ?
 					if(!(x in ret.atts) && 'default' in prop && !pagelayer_empty(prop['default'])){
-						
+				
 						// We need to make sure its not a PRO value
 						if(!('pro' in prop && pagelayer_empty(pagelayer_pro))){
-							ret.set[x] = prop['default'];
+							
+							var tmp_val = prop['default'];
+							
+							// If there is a unit and there is no unit suffix in atts value
+							if('units' in prop){
+								if(jQuery.isNumeric(prop['default'])){
+									tmp_val = prop['default']+prop['units'][0];
+								}else{
+									var sep = 'sep' in prop ? prop['sep'] : ',';
+									var tmp2 = prop['default'].split(sep);
+									for(var k in tmp2){
+										tmp2[k] = tmp2[k]+prop['units'][0];
+									}
+									tmp_val = tmp2.join(sep);
+								}
+							}
+							
+							//console.log(x+' - '+tmp_val);
+							ret.set[x] = tmp_val;
+							
 						}
 					}
 					
@@ -293,6 +312,8 @@ function pagelayer_elpd_generate(jEle, holder){
 				pagelayer_elpd_widget_settings(el, sec, true);
 				continue;
 			}
+			
+			var mode = pagelayer_get_screen_mode();
 	
 			// Reset / Create the cache
 			for(var x in props){
@@ -300,12 +321,18 @@ function pagelayer_elpd_generate(jEle, holder){
 				props[x]['c'] = new Object();
 				props[x]['c']['val'] = '';// Blank Val		
 				props[x]['c']['name'] = x;// Add the Name of the row i.e. attribute of the element
+				var prop_name = x;
+				
+				// Do we have screen ?
+				if('screen' in props[x] && mode != 'desktop'){
+					prop_name = x +'_'+mode;
+				}
 				
 				// Set default to value of attribute if any
-				if(x in el.atts){
-					props[x]['c']['val'] = el.atts[x];
+				if(prop_name in el.atts){
+					props[x]['c']['val'] = el.atts[prop_name];
 				}
-		
+				
 				// Set element
 				props[x]['el'] = el;
 				
@@ -669,6 +696,8 @@ function pagelayer_elpd_widget_settings(el, sec, onfocus){
 function _pagelayer_set_atts(row, val, no_default){
 	var id = row.closest('[pagelayer-element-id]').attr('pagelayer-element-id');
 	var jEle = jQuery('[pagelayer-id='+id+']');
+	var tag = pagelayer_tag(jEle);
+	var prop_name = row.attr('pagelayer-elp-name');
 	
 	// Is there a unit ?
 	var uEle = row.find('.pagelayer-elp-units');
@@ -690,7 +719,7 @@ function _pagelayer_set_atts(row, val, no_default){
 	var mEle = row.find('.pagelayer-elp-screen');
 	var mode = mEle.length > 0 && pagelayer_get_screen_mode() != 'desktop' ? '_'+pagelayer_get_screen_mode() : '';
 	
-	pagelayer_set_atts(jEle, row.attr('pagelayer-elp-name')+mode, val);
+	pagelayer_set_atts(jEle, prop_name+mode, val);
 	
 	// Are we to skip setting defaults ?
 	no_default = no_default || false;
@@ -710,6 +739,13 @@ function _pagelayer_set_atts(row, val, no_default){
 	
 	// Render
 	pagelayer_sc_render(jEle);
+	
+	if('onchange' in pagelayer.props_ref[tag][prop_name]){
+		var fn = window[pagelayer.props_ref[tag][prop_name]['onchange']];
+		if(typeof fn === 'function'){
+			fn(jEle, row, val);
+		}
+	}
 };
 
 // Will set the attribute but not render
@@ -805,7 +841,7 @@ function pagelayer_elp_label(row, prop){
 	
 	// Do we have pro version requirement ?
 	if('pro' in prop && pagelayer_empty(pagelayer_pro)){
-		var txt = prop['pro'].length > 1 ? prop['pro'] : 'This feature is a part of <a href="'+pagelayer_pro_url+'" target="_blank">Pagelayer Pro</a>. You will need purchase <a href="'+pagelayer_pro_url+'" target="_blank">Pagelayer Pro</a> to use this feature.'
+		var txt = prop['pro'].length > 1 ? prop['pro'] : pagelayer.pro_txt;
 		var pro = jQuery('<div class="pagelayer-pro-req">Pro</div>');
 		pro.attr('data-tlite', txt);
 		label.append(pro);
@@ -1043,7 +1079,7 @@ function pagelayer_elp_radio(row, prop){
 		div += '<a class="pagelayer-elp-radio '+addclass+'" val="'+x+'">'+prop.list[x]+'</a>';
 	}
 	
-	div += '<div>';
+	div += '</div>';
 	
 	row.append(div);
 	
@@ -1570,8 +1606,8 @@ function pagelayer_elp_media(row, prop){
 function pagelayer_elp_slider(row, prop){
 	
 	var div = '<div class="pagelayer-elp-slider-div">'+
-				  '<input type="range" class="pagelayer-elp-slider" value="'+parseInt(prop.c['val'])+'" min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'"/>'+
-				  '<input type="number" class="pagelayer-elp-slider-value" value="'+parseInt(prop.c['val'])+'" min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'"/>'+
+				  '<input type="range" class="pagelayer-elp-slider" value="'+parseFloat(prop.c['val'])+'" min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'"/>'+
+				  '<input type="number" class="pagelayer-elp-slider-value" value="'+parseFloat(prop.c['val'])+'" min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'"/>'+
 				'</div>'+
 			'</div>';
 	
@@ -1608,24 +1644,25 @@ function pagelayer_elp_editor(row, prop){
 		hideButtonTexts: true,
 		btns:[
 			['viewHTML'],
+			['wpmedia'],
 			['fontfamily'],
 			['formatting'],
 			['undo', 'redo'], // Only supported in Blink browsers
 			['fontsize'],
+			['lineheight'],
 			['foreColor', 'backColor',],
 			['strong', 'em', 'del'],
+			['horizontalRule'],
 			['superscript', 'subscript'],
 			['link'],
-			['wpmedia'],
-			['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'],
 			['unorderedList', 'orderedList'],
-			['horizontalRule'],
+			['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'],
 			['removeformat'],
 			['fullscreen']
 		],
 		plugins: {
 			fontsize: {
-				sizeList: ['12px','13px','14px','15px','16px','17px','18px','19px','20px','21px','22px','23px','24px','25px',]
+				sizeList: ['12px','13px','14px','15px','16px','17px','18px','19px','20px','21px','22px','23px','24px','25px']
 			}
 		},
 		imageWidthModalEdit: true,
@@ -1821,6 +1858,7 @@ function pagelayer_elp_icon(row, prop){
 					'</span>'+
 				'</div>'+
 				'<span class="pagelayer-elp-icon-open">▼</span>'+
+				'<span class="pagelayer-elp-icon-close" '+(pagelayer_empty(sel_name)? 'style="display:none"': '')+'><b>&times;&nbsp;</b></span>'+
 			'</div>';
 	
 	row.append(div);
@@ -1955,8 +1993,21 @@ function pagelayer_elp_icon(row, prop){
 		
 		_pagelayer_set_atts(row, i);// Save and Render
 		
+		row.find('.pagelayer-elp-icon-close').show();
 		return false;
 		
+	});
+	
+	// Delete the icon
+	row.find('.pagelayer-elp-icon-close').on('click', function(){
+		
+		// Set the icon in this list
+		row.find('.pagelayer-elp-icon-preview').html('<i class=""></i><span class="pagelayer-elp-icon-name">'+pagelayer_l('choose_icon')+'</span>');
+		
+		// Save and Render
+		_pagelayer_set_atts(row, '');
+		jQuery(this).hide();
+		return false;
 	});
 	
 }
@@ -1966,7 +2017,7 @@ function pagelayer_elp_color(row, prop){
 	
 	var div = '<div class="pagelayer-elp-color-div">'+
 		'<div class="pagelayer-elp-color-preview"></div>'+
-		'<span class="pagelayer-elp-remove-color pagelayer-prop-action"><i class="pli pli-cross" /></span>'+
+		'<span class="pagelayer-elp-remove-color"><i class="pli pli-cross" /></span>'+
 	'</div>';
 	
 	row.append(div);
@@ -1980,10 +2031,27 @@ function pagelayer_elp_color(row, prop){
 		doc: window.parent.document
 	});
 	
+	var preview = row.find('.pagelayer-elp-color-preview');
+	
+	// If no val, then set blank
+	if(pagelayer_empty(prop.c['val'])){
+		preview.addClass('pagelayer-blank-preview');
+	}
+	
+	var handle_white = function(col){	
+		if(col.charAt(1) == 'f'){
+			preview.addClass('pagelayer-white-border');
+		}else{
+			preview.removeClass('pagelayer-white-border');
+		}
+	}
+	
+	handle_white(prop.c['val']);
+	
 	// Handle selected color
-	picker.onChange = function(color) {
-		
-		row.find('.pagelayer-elp-color-preview').removeClass('pagelayer-blank-preview').css('background', color.rgbaString);
+	picker.onChange = function(color) {		
+		preview.removeClass('pagelayer-blank-preview').css('background', color.rgbaString);
+		handle_white(color.hex);
 		_pagelayer_set_atts(row, color.hex);// Save and Render
 	};
 	
@@ -1992,7 +2060,8 @@ function pagelayer_elp_color(row, prop){
 	row.find('.pagelayer-elp-remove-color').on('click', function(event){
 		event.stopPropagation();
 		picker.setColor(prop.default, true);
-		row.find('.pagelayer-elp-color-preview').addClass('pagelayer-blank-preview');
+		preview.addClass('pagelayer-blank-preview');		
+		handle_white('');
 		_pagelayer_set_atts(row, ' ');// Save and Render
 	})
 	
@@ -2003,7 +2072,7 @@ function pagelayer_elp_spinner(row, prop){
 	
 	var div = '<div class="pagelayer-elp-spinner-div">'+
 				'<input type="number" class="pagelayer-elp-spinner" name="'+prop.c['name']+'"'+
-				' min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'" value="'+prop.c['val']+'"/>'+
+				' min="'+prop['min']+'" max="'+prop['max']+'" step="'+prop['step']+'" value="'+parseFloat(prop.c['val'])+'"/>'+
 			'</div>';
 			
 	row.append(div);
@@ -2179,10 +2248,10 @@ function pagelayer_elp_padding(row, prop){
 	}
 	
 	var div = '<div class="pagelayer-elp-padding-div">'+
-				'<input type="number" class="pagelayer-elp-padding" value="'+parseInt(val[0])+'"></input>'+
-				'<input type="number" class="pagelayer-elp-padding" value="'+parseInt(val[1])+'"></input>'+
-				'<input type="number" class="pagelayer-elp-padding" value="'+parseInt(val[2])+'"></input>'+
-				'<input type="number" class="pagelayer-elp-padding" value="'+parseInt(val[3])+'"></input>'+
+				'<input type="number" class="pagelayer-elp-padding" value="'+parseFloat(val[0])+'"></input>'+
+				'<input type="number" class="pagelayer-elp-padding" value="'+parseFloat(val[1])+'"></input>'+
+				'<input type="number" class="pagelayer-elp-padding" value="'+parseFloat(val[2])+'"></input>'+
+				'<input type="number" class="pagelayer-elp-padding" value="'+parseFloat(val[3])+'"></input>'+
 				'<i class="pli pli-link" />'+
 			'</div>';
 	
@@ -2293,6 +2362,7 @@ function pagelayer_elp_shadow(row, prop){
 	var picker = new Picker({
 		parent : row.find('.pagelayer-elp-color-div')[0],
 		popup : 'left',
+		color : val[3],
 		doc: window.parent.document
 	});
 	
@@ -2371,6 +2441,7 @@ function pagelayer_elp_box_shadow(row, prop){
 	var picker = new Picker({
 		parent : row.find('.pagelayer-elp-color-div')[0],
 		popup : 'left',
+		color : val[3],
 		doc: window.parent.document
 	});
 	
@@ -2558,7 +2629,7 @@ function pagelayer_elp_typography(row, prop){
 	}
 	
 	var select = { 'style' : ['', 'Normal', 'Italic', 'Oblique'],
-		'weight' : ['', '100', '200', '300', '400', '500', '600', '700', '800', '900'],
+		'weight' : ['', '100', '200', '300', '400', '500', '600', '700', '800', '900', 'normal', 'lighter', 'bold', 'bolder', 'unset'],
 		'variant' : ['', 'Normal', 'Small-caps'],
 		'deco-line' : ['', 'None', 'Overline', 'Line-through', 'Underline', 'Underline Overline'],
 		'deco-style' : ['Solid', 'Double', 'Dotted', 'Dashed', 'Wavy'],
@@ -2694,7 +2765,7 @@ function pagelayer_elp_typography(row, prop){
 	
 	row.find('.pagelayer-elp-typo-search').on('input', function(){
 		var val = jQuery(this).val().toLowerCase();
-		console.log(val);
+		//console.log(val);
 		var html = '';
 		jQuery.each(select['fonts'],function(key, value){
 			//value = value.toLowerCase();
@@ -2760,8 +2831,8 @@ function pagelayer_elp_dimension(row, prop){
 	}
 	
 	var div = '<div class="pagelayer-elp-dimension-div">'+
-		'<input type="number" class="pagelayer-elp-dimension" value="'+parseInt(val[0])+'"></input>'+
-		'<input type="number" class="pagelayer-elp-dimension" value="'+parseInt(val[1])+'"></input>'+
+		'<input type="number" class="pagelayer-elp-dimension" value="'+parseFloat(val[0])+'"></input>'+
+		'<input type="number" class="pagelayer-elp-dimension" value="'+parseFloat(val[1])+'"></input>'+
 		'<i class="pli pli-link" />'+
 	'</div>';
 	
@@ -2843,7 +2914,7 @@ function pagelayer_select_frame(tag, state){
 				id: 'pagelayer-wp-multi-image-library',
 				frame: 'post',
 				state: state,
-				title: pagelayer_l('frame_'+tag),
+				title: pagelayer_l('frame_multi_image'),
 				multiple: true,
 				library: wp.media.query({type: 'image'}),
 				button: {
@@ -2862,12 +2933,12 @@ function pagelayer_select_frame(tag, state){
 				id: 'pagelayer-wp-media-library',
 				frame: 'post',
 				state: 'pagelayer-media',
-				title: pagelayer_l('frame_'+tag),
+				title: pagelayer_l('frame_media'),
 				multiple: false,
 				states: [
 					new wp.media.controller.Library({
 						id: 'pagelayer-media',
-						title: pagelayer_l('frame_'+tag),
+						title: pagelayer_l('frame_media'),
 						multiple: false,
 						date: true
 					})
@@ -2888,13 +2959,13 @@ function pagelayer_select_frame(tag, state){
 				id: 'pagelayer-wp-'+tag+'-library',
 				frame: 'post',
 				state: 'pagelayer-'+tag,
-				title: pagelayer_l('frame_'+tag),
+				title: pagelayer_l('frame_media'),
 				multiple: false,
 				library: wp.media.query({type: tag}),
 				states: [
 					new wp.media.controller.Library({
 						id: 'pagelayer-'+tag,
-						title: pagelayer_l('frame_'+tag),
+						title: pagelayer_l('frame_media'),
 						library: wp.media.query( { type: tag } ),
 						multiple: false,
 						date: true

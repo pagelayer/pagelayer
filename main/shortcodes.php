@@ -271,11 +271,6 @@ $pagelayer->slider_pager_styles = [
 		'label' => __pl('color'),
 		'css' => ['{{element}} .pagelayer-owl-dot span' => 'background-color: {{val}} !important']
 	),
-	'active_pager_color' => array(
-		'type' => 'color',
-		'label' => __pl('active_pager_color'),
-		'css' => ['{{element}} .pagelayer-owl-dot.active span' => 'background-color: {{val}} !important']
-	),
 	'dot_size' => array(
 		'type' => 'slider',
 		'label' => __pl('dot_size'),
@@ -287,6 +282,33 @@ $pagelayer->slider_pager_styles = [
 			'{{element}} .pagelayer-owl-dot span' => 'width: {{val}}px !important; height: {{val}}px !important;'
 		]
 	),
+	'active_pager_color' => array(
+		'type' => 'color',
+		'label' => __pl('active_pager_color'),
+		'css' => ['{{element}} .pagelayer-owl-dot.active span' => 'background-color: {{val}} !important']
+	),
+	'active_dot_size' => array(
+		'type' => 'slider',
+		'label' => __pl('active_dot_size'),
+		'min' => 0,
+		'step' => 1,
+		'max' => 200,
+		'screen' => 1,
+		'css' => [
+			'{{element}} .pagelayer-owl-dot.active span' => 'width: {{val}}px !important; height: {{val}}px !important;'
+		]
+	),
+	'pager_top_space' => array(
+		'type' => 'slider',
+		'label' => __pl('service_btn_spacing'),
+		'min' => 0,
+		'step' => 1,
+		'max' => 200,
+		'screen' => 1,
+		'css' => [
+			'{{element}} .pagelayer-owl-nav.disabled+.pagelayer-owl-dots' => 'margin-top: {{val}}px;'
+		]
+	)
 ];
 
 $pagelayer->slider_options = [
@@ -394,7 +416,7 @@ $pagelayer->styles['ele_bg_styles'] = [
 	'ele_bg_gradient' => [
 		'type' => 'gradient',
 		'label' => '',
-		'default' => '150,#44d3f6ff,23,#72e584ff,45,#2ca4ebff,100',
+		'default' => '150,#44d3f6,23,#72e584,45,#2ca4eb,100',
 		'css' => 'background: linear-gradient({{val[0]}}deg, {{val[1]}} {{val[2]}}%, {{val[3]}} {{val[4]}}%, {{val[5]}} {{val[6]}}%);',
 		'show' => ['ele_bg_hover' => ''],
 		'req' => ['ele_bg_type' => 'gradient']
@@ -404,15 +426,14 @@ $pagelayer->styles['ele_bg_styles'] = [
 		'label' => __pl('color'),
 		'default' => '',
 		'desc' => __pl('fallback background color if image is failed to load.'),
-		'css' => 'background: {{val}};',
+		'css' => 'background-color: {{val}};',
 		'show' => ['ele_bg_hover' => ''],
 		'req' => ['ele_bg_type' => 'image']
 	],
 	'ele_bg_img' => [
 		'type' => 'image',
 		'label' => __pl('Image'),
-		//'default' => '',
-		'css' => 'background: url("{{{ele_bg_img-url}}}");',
+		'css' => 'background-image: url("{{{ele_bg_img-url}}}");',
 		'show' => ['ele_bg_hover' => ''],
 		'req' => ['ele_bg_type' => 'image']
 	],
@@ -540,7 +561,7 @@ $pagelayer->styles['ele_bg_styles'] = [
 	'ele_bg_gradient_hover' => [
 		'type' => 'gradient',
 		'label' => '',
-		'default' => '150,#44d3f6ff,25,#72e584ff,75,#2ca4ebff,100',
+		'default' => '150,#44d3f6,25,#72e584,75,#2ca4eb,100',
 		'css' => ['{{element}}:hover' => 'background: linear-gradient({{val[0]}}deg, {{val[1]}} {{val[2]}}%, {{val[3]}} {{val[4]}}%, {{val[5]}} {{val[6]}}%);'],
 		'show' => ['ele_bg_hover' => 'hover'],
 		'req' => ['ele_bg_type_hover' => 'gradient']
@@ -762,28 +783,34 @@ $pagelayer->styles['border_styles'] = [
 ];
 
 $pagelayer->styles['position_styles'] = [
+	'ele_custom_pos' => array(
+		'type' => 'checkbox',
+		'label' => __pl('enable'),
+	),
 	'ele_width' => [
 		'type' => 'select',
 		'label' => __pl('width'),
 		'screen' => 1,
-		'css' => ['{{wrap}}' => 'width:{{val}};'],
+		'css' => ['{{wrap}}' => 'width:{{val}} !important;'],
 		'list' => [
-			'auto' => __pl('default'),
+			'initial' => __pl('default'),
 			'100%' => __pl('full'),
 			'' => __pl('custom'),
-		]
+		],
+		'req' => ['ele_custom_pos' => 'true']
 	],
 	'ele_custom_width' => [
 		'type' => 'slider',
 		'label' => __pl('custom_width'),
 		'screen' => 1,
 		'units' => ['px','%','vw'],
-		'css' => ['{{wrap}}' => 'width:{{val}};'],
+		'css' => ['{{wrap}}' => 'width:{{val}} !important;'],
 		'min' => 0,
 		'max' => 1000,
 		'step' => 1,
 		'req' => [
-			'ele_width' => ''
+			'ele_width' => '',
+			'ele_custom_pos' => 'true'
 		]
 	],
 	'ele_align' => [
@@ -791,14 +818,15 @@ $pagelayer->styles['position_styles'] = [
 		'label' => __pl('alignment'),
 		'default' => 'margin',
 		'screen' => 1,
-		'css' => ['{{wrap}}' => '{{val}}:auto;'],
+		'css' => ['{{wrap}}' => 'position:relative; left:{{val}}; transform:translateX(-{{val}});'],
 		'list' => [
-			'margin-right' => __pl('left'),
-			'margin' => __pl('center'),
-			'margin-left' => __pl('right'),
+			'0%' => __pl('left'),
+			'50%' => __pl('center'),
+			'100%' => __pl('right'),
 		],
 		'req' => [
-			'ele_width' => ''
+			'ele_width' => '',
+			'ele_custom_pos' => 'true'
 		]
 	],
 	'ele_height' => [
@@ -811,7 +839,8 @@ $pagelayer->styles['position_styles'] = [
 			'auto' => __pl('default'),
 			'100%' => __pl('full'),
 			'' => __pl('custom'),
-		]
+		],
+		'req' => ['ele_custom_pos' => 'true']
 	],
 	'ele_custom_height' => [
 		'type' => 'slider',
@@ -823,7 +852,8 @@ $pagelayer->styles['position_styles'] = [
 		'max' => 1000,
 		'step' => 1,
 		'req' => [
-			'ele_height' => ''
+			'ele_height' => '',
+			'ele_custom_pos' => 'true'
 		]
 	],
 	'ele_position' => [
@@ -831,13 +861,14 @@ $pagelayer->styles['position_styles'] = [
 		'label' => __pl('position'),
 		'default' => '',
 		'screen' => 1,
-		'css' => ['{{wrap}}' => 'position:{{val}} !important; z-index:1;'],
+		'css' => ['{{wrap}}' => 'position:{{val}} !important; z-index: 1; transform: translateX(-0%);'],
 		'list' => [
 			'' => __pl('default'),
 			'absolute' => __pl('absolute'),
 			'fixed' => __pl('fixed'),
 			'relative' => __pl('relative'),
-		]
+		],
+		'req' => ['ele_custom_pos' => 'true']
 	],
 	'ele_vposition' => [
 		'type' => 'select',
@@ -850,7 +881,8 @@ $pagelayer->styles['position_styles'] = [
 			'bottom' => __pl('bottom')
 		],
 		'req' => [
-			'!ele_position' => ''
+			'!ele_position' => '',
+			'ele_custom_pos' => 'true'
 		]
 	],
 	'ele_vposition_offset' => [
@@ -865,7 +897,8 @@ $pagelayer->styles['position_styles'] = [
 		'step' => 1,
 		'req' => [
 			'!ele_vposition' => '',
-			'!ele_position' => ''
+			'!ele_position' => '',
+			'ele_custom_pos' => 'true'
 		]
 	],
 	'ele_hposition' => [
@@ -879,7 +912,8 @@ $pagelayer->styles['position_styles'] = [
 			'right' => __pl('right')
 		],
 		'req' => [
-			'!ele_position' => ''
+			'!ele_position' => '',
+			'ele_custom_pos' => 'true'
 		]
 	],
 	'ele_hposition_offset' => [
@@ -894,7 +928,8 @@ $pagelayer->styles['position_styles'] = [
 		'step' => 1,
 		'req' => [
 			'!ele_hposition' => '',
-			'!ele_position' => ''
+			'!ele_position' => '',
+			'ele_custom_pos' => 'true'
 		]
 	]
 ];
@@ -969,7 +1004,46 @@ $pagelayer->styles['animation_styles'] = [
 			'wobble-skew' => __pl('Wobble Skew'),
 		],
 		'pro' => 1,
-	)
+	),
+	'ele_sticky_pos' => array(
+		'type' => 'select',
+		'label' => __pl('scroll_sticky'),
+		'addClass' => 'pagelayer-sticky-ele',
+		'addAttr' => 'data-sticky-position="{{ele_sticky_pos}}"',
+		'list' => array(
+			'' => __pl('none'),
+			'top' => __pl('top'),
+			'bottom' => __pl('bottom'),
+		),
+		'pro' => 1,
+	),
+	'ele_sticky_on' => array(
+		'type' => 'multiselect',
+		'label' => __pl('sticky_on'),
+		'default' => 'desktop,tablet,mobile',
+		'addAttr' => 'data-sticky-on="{{ele_sticky_on}}"',
+		'list' => array(
+			'desktop' => __pl('desktop'),
+			'tablet' => __pl('tablet'),
+			'mobile' => __pl('mobile'),
+		),
+		'req' => [ '!ele_sticky_pos' => ''],
+		'pro' => 1,
+	),
+	'ele_sticky_offset' => array(
+		'type' => 'slider',
+		'label' => __pl('offset'),
+		'addAttr' => 'data-sticky-offset="{{ele_sticky_offset}}"',
+		'req' => [ '!ele_sticky_pos' => ''],
+		'pro' => 1,
+	),
+	'ele_sticky_in_col' => array(
+		'type' => 'checkbox',
+		'label' => __pl('sticky_in_col'),
+		'addAttr' => 'data-sticky_in_col="{{ele_sticky_in_col}}"',
+		'req' => [ '!ele_sticky_pos' => ''],
+		'pro' => 1,
+	),
 ];
 
 // Resposive stuff
@@ -1026,6 +1100,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_row', array(
 		'group' => 'grid',
 		'func' => 'pagelayer_sc_row',
 		'skip_props_cat' => ['position_styles'],
+		'skip_props' => ['ele_sticky_in_container'],
 		'html' => '<div if="{{bg_video_src}}" class="pagelayer-background-video">{{vid_src}}</div>
 			<div if="{{bg_slider}}" class="pagelayer-bgimg-slider">
 				{{slider}}
@@ -1061,7 +1136,8 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_row', array(
 				'min' => 300,
 				'max' => 3000,
 				'step' => 1,
-				'css' => ['{{element}}' => 'max-width: {{val}}px; margin-left: auto !important; margin-right: auto !important;'],
+				'units' => [ 'px', '%', 'vw' ],
+				'css' => ['{{element}}' => 'max-width: {{val}}; margin-left: auto !important; margin-right: auto !important;'],
 				'req' => array(
 					'stretch' => 'fixed'
 				)
@@ -1089,10 +1165,11 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_row', array(
 				'type' => 'slider',
 				'label' => __pl('fixed_width'),
 				'default' => 500,
-				'min' => 300,
+				'min' => 1,
 				'max' => 3000,
-				'step' => 1,
-				'css' => ['{{element}} .pagelayer-row-holder' => 'max-width: {{val}}px; margin-left: auto; margin-right: auto;'],
+				'screen' => 1,
+				'units' => [ 'px', '%', 'vw' ],
+				'css' => ['{{element}} .pagelayer-row-holder' => 'max-width: {{val}}; margin-left: auto; margin-right: auto;'],
 				'req' => array(
 					'width_content' => 'fixed'
 				)
@@ -1113,36 +1190,22 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_row', array(
 				'label' => __pl('min_height'),
 				'min' => 0,
 				'max' => 2000,
-				'step' => 1,
-				'css' => 'min-height: {{val}}px;',
+				'screen' => 1,
+				'units' => ['px', 'vh', 'vw'],
+				'css' => 'min-height: {{val}};',
 				'req' => array(
 					'row_height' => 'custom'
 				)
 			),
-			'column_pos' => array(
+			'content_pos' => array(
 				'type' => 'select',
-				'label' => __pl('column_pos'),
-				'default' => 'default',
-				'css' => ['{{element}}' => '-webkit-box-align: {{val}}; -webkit-align-items: {{val}}; -ms-flex-align: {{val}}; align-items: {{val}};'],
+				'label' => __pl('content_pos'),
+				'css' => ['{{element}}>.pagelayer-row-holder .pagelayer-col' => 'align-content: {{val}};'],
 				'list' => array(
 					'' => __pl('default'),
 					'flex-start' => __pl('top'),
 					'center' => __pl('center'),
 					'flex-end' => __pl('bottom'),
-					'stretch' => __pl('Stretch')
-				),
-			),
-			'content_pos' => array(
-				'type' => 'select',
-				'label' => __pl('content_pos'),
-				'default' => 'default',
-				'css' => ['{{element}} .pagelayer-row-holder' => '-webkit-box-align: {{val}}; -webkit-align-items: {{val}}; -ms-flex-align: {{val}}; align-items: {{val}};'],
-				'list' => array(
-					'' => __pl('default'),
-					'baseline' => __pl('top'),
-					'center' => __pl('center'),
-					'end' => __pl('bottom'),
-					'stretch' => __pl('Stretch')
 				),
 			),
 		),
@@ -1218,7 +1281,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_row', array(
 			'overlay_gradient' => array(
 				'type' => 'gradient',
 				'label' => '',
-				'default' => '150,#44d3f6ff,23,#72e584ff,45,#2ca4ebff,100',
+				'default' => '150,#44d3f6,23,#72e584,45,#2ca4eb,100',
 				'css' => ['{{element}} .pagelayer-background-overlay' => 'background: linear-gradient({{val[0]}}deg, {{val[1]}} {{val[2]}}%, {{val[3]}} {{val[4]}}%, {{val[5]}} {{val[6]}}%);'],
 				'show' => ['overlay_state' => ''],
 				'req' => ['overlay_type' => 'gradient']
@@ -1341,7 +1404,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_row', array(
 			'overlay_gradient_hover' => array(
 				'type' => 'gradient',
 				'label' => '',
-				'default' => '150,#44d3f6ff,23,#72e584ff,45,#2ca4ebff,100',
+				'default' => '150,#44d3f6,23,#72e584,45,#2ca4eb,100',
 				'css' => ['{{element}}:hover .pagelayer-background-overlay' => 'background: linear-gradient({{val[0]}}deg, {{val[1]}} {{val[2]}}%, {{val[3]}} {{val[4]}}%, {{val[5]}} {{val[6]}}%);'],
 				'show' => ['overlay_state' => 'hover'],
 				'req' => ['overlay_type_hover' => 'gradient']
@@ -1568,6 +1631,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_col', array(
 		'group' => 'grid',
 		'func' => 'pagelayer_sc_col',
 		'skip_props_cat' => ['position_styles'],
+		'skip_props' => ['ele_sticky_in_container'],
 		'html' => '<div if="{{bg_video_src}}" class="pagelayer-background-video">{{vid_src}}</div>
 				<div if="{{bg_slider}}" class="pagelayer-bgimg-slider">
 					{{slider}}
@@ -1582,9 +1646,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_col', array(
 			'content_pos' => array(
 				'type' => 'select',
 				'label' => __pl('content_pos'),
-				'default' => '',
-				'css' => ['{{element}}' => 'display:flex; -webkit-box-align: {{val}}; -webkit-align-items: {{val}}; -ms-flex-align: {{val}}; align-items: {{val}}; height: 100%;',
-					'{{element}} .pagelayer-col-holder' => 'width:100%'],
+				'css' => ['{{element}}' => 'align-content: {{val}} !important;'],
 				'list' => array(
 					'' => __pl('default'),
 					'flex-start' => __pl('top'),
@@ -1627,7 +1689,8 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_col', array(
 				'min' => 0,
 				'step' => 1,
 				'max' => 100,
-				'css' => ( !pagelayer_is_live() ? 'width: {{val}}%;' : '' ),
+				'screen' => 1,
+				'css' =>['.pagelayer-row-holder {{wrap}}' => 'width: {{val}}%;'],
 				'req' => ['col' => ''],
 			),
 		),
@@ -1704,7 +1767,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_col', array(
 			'overlay_gradient' => array(
 				'type' => 'gradient',
 				'label' => '',
-				'default' => '150,#44d3f6ff,23,#72e584ff,45,#2ca4ebff,100',
+				'default' => '150,#44d3f6,23,#72e584,45,#2ca4eb,100',
 				'css' => ['{{element}} .pagelayer-background-overlay' => 'background: linear-gradient({{val[0]}}deg, {{val[1]}} {{val[2]}}%, {{val[3]}} {{val[4]}}%, {{val[5]}} {{val[6]}}%);'],
 				'show' => ['overlay_state' => ''],
 				'req' => ['overlay_type' => 'gradient']
@@ -1827,7 +1890,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_col', array(
 			'overlay_gradient_hover' => array(
 				'type' => 'gradient',
 				'label' => '',
-				'default' => '150,#44d3f6ff,23,#72e584ff,45,#2ca4ebff,100',
+				'default' => '150,#44d3f6,23,#72e584,45,#2ca4eb,100',
 				'css' => ['{{element}}:hover .pagelayer-background-overlay' => 'background: linear-gradient({{val[0]}}deg, {{val[1]}} {{val[2]}}%, {{val[3]}} {{val[4]}}%, {{val[5]}} {{val[6]}}%);'],
 				'show' => ['overlay_state' => 'hover'],
 				'req' => ['overlay_type_hover' => 'gradient']
@@ -1974,7 +2037,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_heading', array(
 		'heading_styles' => [
 			'heading_state' => array(
 				'type' => 'radio',
-				'label' => 'state',
+				'label' => __pl('state'),
 				'default' => 'normal',
 				'list' => array(
 					'normal' => __pl('normal'),
@@ -1984,7 +2047,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_heading', array(
 			'color' => array(
 				'type' => 'color',
 				'label' => __pl('color'),
-				'default' => '#111111ff',
+				'default' => '#111111',
 				'css' => ['{{element}} .pagelayer-heading-holder *' => 'color:{{val}}', '{{element}} .pagelayer-heading-holder' => 'color:{{val}}'],
 				'show' => ['heading_state' => 'normal']
 			),
@@ -2086,6 +2149,11 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_quote', array(
 				'default' => '#050505',
 				'css' => ['{{element}} .pagelayer-quote-content' => 'color:{{val}}'],
 			),
+			'quote_content_space' => array(
+				'type' => 'dimension',
+				'label' => __pl('space_between'),
+				'css' => ['{{element}} .pagelayer-quote-content' => 'margin-top:{{val[0]}}px;margin-bottom:{{val[1]}}px;'],
+			),
 			'quote_content_typo' => array(
 				'type' => 'typography',
 				'label' => __pl('quote_content_typo'),
@@ -2135,7 +2203,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_quote', array(
 			'quotation_color' => array(
 				'type' => 'color',
 				'label' => __pl('quotation_color_label'),
-				'default' => '#dadadaff',
+				'default' => '#dadada',
 				'css' => ['{{element}} i' => 'color:{{val}}'],
 				'req' => array(
 					'quote_style' => ['quotation','double']
@@ -2213,6 +2281,18 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_quote', array(
 				'label' => __pl('quotes_cite_color_label'),
 				'default' => '#3f3f3f',
 				'css' => ['{{element}} .pagelayer-quote-cite span' => 'color:{{val}}']
+			),
+			'cite_text_align' => array(
+				'label' => __pl('obj_align_label'),
+				'type' => 'radio',
+				'default' => 'left',
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-quote-cite' => 'text-align: {{val}};'],
+				'list' => array(
+					'left' => __pl('left'),
+					'center' => __pl('center'),
+					'right' => __pl('right'),
+				)
 			),
 			'cite_typo' => array(
 				'type' => 'typography',
@@ -2301,7 +2381,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_list_item', array(
 			'icon' => array(
 				'type' => 'icon',
 				'label' => __pl('list_icon_label'),
-				'default' => 'star',
+				'default' => 'fas fa-star',
 				'req' => array(
 					'show_icon' => 'true'
 				)
@@ -2563,7 +2643,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_icon', array(
 			'icon' => array(
 				'type' => 'icon',
 				'label' => __pl('list_icon_label'),
-				'default' => 'fa fa-star',
+				'default' => 'fas fa-star',
 			),
 			'icon_background_size' => array(
 				'type' => 'spinner',
@@ -2670,7 +2750,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_icon', array(
 				'label' => __pl('service_box_icon_rotate'),
 				'default' => 0,
 				'css' => ['{{element}} i' => 'transform: rotate({{val}}deg)'],
-				'min' => 0,
+				'min' => -360,
 				'max' => 360,
 				'step' => 1,
 				'screen' => 1,
@@ -2683,7 +2763,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_icon', array(
 				'label' => __pl('rotate_icon'),
 				'default' => 0,
 				'css' => ['{{element}} i:before' => 'transform: translate(-50%, -50%) rotate({{val}}deg)'],
-				'min' => 0,
+				'min' => -360,
 				'max' => 360,
 				'step' => 1,
 				'screen' => 1,
@@ -3064,7 +3144,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_badge', array(
 			'badge_background_color' => array(
 				'type' => 'color',
 				'label' => __pl('badge_text_background_label'),
-				'default' => '#4982eeff',
+				'default' => '#4982ee',
 				'css' => ['{{element}} .pagelayer-badge-custom' => 'background-color:{{val}};'],
 				'req' => ['badge_notification_type' => 'custom'],
 			),
@@ -3136,7 +3216,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_badge', array(
 			'badge_btn_background_color' => array(
 				'type' => 'color',
 				'label' => __pl('badge_btn_background_label'),
-				'default' => '#4982eeff',
+				'default' => '#4982ee',
 				'css' => ['{{element}} .pagelayer-badge-btn' => 'background-color:{{val}};'],
 				'req' => [
 					'badge_btn_type' => 'custom',
@@ -3147,7 +3227,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_badge', array(
 			'badge_btn_background_color_hover' => array(
 				'type' => 'color',
 				'label' => __pl('badge_btn_background_label'),
-				'default' => '#4982eeff',
+				'default' => '#4982ee',
 				'css' => ['{{element}} .pagelayer-badge-btn:hover' => 'background-color:{{val}};'],			
 				'show' => ['badge_btn_hover' => 'hover'],
 			),
@@ -3288,7 +3368,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_tooltip', array(
 			'tooltip_icon' => array(
 				'type' => 'icon',
 				'label' => __pl('tooltip_icon'),
-				'default' => 'exclamation-circle',
+				'default' => 'fas fa-exclamation-circle',
 				'req' => array(
 					'show_icon' => 'true',
 				)	
@@ -3577,7 +3657,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_image', array(
 			'icon' => array(
 				'label' => __pl('icon'),
 				'type' => 'icon',
-				'default' => 'star',
+				'default' => 'fas fa-star',
 				'req' => array(
 					'overlay' => 'true'
 				)
@@ -3613,16 +3693,38 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_image', array(
 				'req' => array(
 					'overlay' => 'true'
 				)
-			),		
+			),
+			'overlay_bg_type' => array(
+				'label' => __pl('background_type'),
+				'type' => 'radio',
+				'default' => 'color',
+				'list' => array(
+					'color' => __pl('color'),
+					'gradient' => __pl('gradient')
+				),
+				'req' => array(
+					'overlay' => 'true'
+				)
+			),
 			'overlay_bg' => array(
 				'label' => __pl('image_overlay_background'),
 				'type' => 'color',
 				'default' => 'rgba(0,0,0,.6)',
 				'css' => ['{{element}} .pagelayer-image-overlay' => 'background: {{val}}'],
 				'req' => array(
-					'overlay' => 'true'
+					'overlay' => 'true',
+					'!overlay_bg_type' => 'gradient'
 				)
 			),
+			'overlay_gradient' => [
+				'type' => 'gradient',
+				'label' => '',
+				'css' => ['{{element}} .pagelayer-image-overlay' => 'background: linear-gradient({{val[0]}}deg, {{val[1]}} {{val[2]}}%, {{val[3]}} {{val[4]}}%, {{val[5]}} {{val[6]}}%);'],
+				'req' => array(
+					'overlay' => 'true',
+					'overlay_bg_type' => 'gradient'
+				)
+			],
 			'content_position' => array(
 				'label' => __pl('Overlay Content Position'),
 				'type' => 'radio',
@@ -4307,13 +4409,15 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_social', array(
 			'icon' => array(
 				'type' => 'icon',
 				'label' => __pl('list_icon_label'),
-				'default' => 'facebook-square',
+				'default' => 'fab fa-facebook-square',
 				'addAttr' => ['{{element}} .pagelayer-icon-holder' => 'data-icon="{{icon}}"'],
 				'list' => ['facebook', 'facebook-f', 'facebook-square', 'facebook-messenger', 'twitter', 'twitter-square', 'google-plus', 'google-plus-g', 'google-plus-square', 'instagram', 'linkedin', 'linkedin-in', 'behance', 'behance-square', 'pinterest', 'pinterest-p', 'pinterest-square', 'reddit-alien', 'reddit-square', 'reddit', 'rss', 'rss-square', 'skype', 'slideshare', 'snapchat', 'snapchat-ghost', 'snapchat-square', 'soundcloud', 'spotify', 'stack-overflow', 'steam', 'steam-symbol', 'steam-square', 'stumbleupon', 'stumbleupon-circle', 'telegram', 'telegram-plane', 'thumbtack', 'tripadvisor', 'tumblr', 'tumblr-square', 'twitch', 'vimeo-v', 'vimeo', 'vimeo-square', 'vk', 'weibo', 'weixin', 'whatsapp', 'whatsapp-square', 'wordpress', 'wordpress-simple', 'xing', 'xing-square', 'yelp', 'youtube', 'youtube-square', '500px', 'flickr', 'android', 'github', 'github-alt', 'github-square', 'gitlab', 'apple', 'jsfiddle', 'houzz', 'bitbucket', 'codepen', 'delicious', 'medium', 'medium-m', 'meetup', 'mixcloud', 'dribbble', 'dribbble-square', 'foursquare'],
+				'onchange' => 'pagelayer_social_icon_onchange'
 			),
 			'social_url' => array(
 				'type' => 'link',
-				'label' => __pl('social_url_label')
+				'label' => __pl('social_url_label'),
+				'default' => get_option('pagelayer-facebook-url'),
 			)
 		)
 	)
@@ -4703,7 +4807,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_video', array(
 			'play_icon' => array(
 				'type' => 'icon',
 				'label' => __pl('list_icon_label'),
-				'default' => 'play-circle',
+				'default' => 'fas fa-play-circle',
 				'req' => array(
 					'overlay' => 'true'
 				)
@@ -4791,7 +4895,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 				'max' => '2000',
 				'screen' => 1,
 				'default' => '200',
-				'css' => ['{{element}} .pagelayer-service-image img' => 'width:{{val}}px; height: auto;'],
+				'css' => ['{{element}} .pagelayer-service-image img' => 'width:{{val}}px;'],
 				'req' => array(
 					'service_image_size' => 'custom',
 				)
@@ -4834,7 +4938,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 				],
 			)
 		],
-		'service_img_style' => [		
+		'service_img_style' => [
 			'service_alignment' => array(
 				'type' => 'radio',
 				'label' => __pl('service_box_media_alignment'),
@@ -4855,6 +4959,41 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 					'bottom' => __pl('bottom'),
 				),
 				'req' => ['!service_alignment' => 'top']
+			),
+			'service_image_height' => array(
+				'type' => 'slider',
+				'label' => __pl('img_height'),
+				'min' => '0',
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-image img' => 'height:{{val}}px;'],
+			),
+			'service_image_object_fit' => array(
+				'type' => 'select',
+				'label' => __pl('object_fit'),
+				'screen' => 1,
+				'list' => array(
+					'' => __pl('none'),
+					'contain' => __pl('contain'),
+					'cover' => __pl('cover'),
+					'fill' => __pl('fill'),
+					'scale-down' => __pl('scale_down'),
+				),
+				'css' => ['{{element}} .pagelayer-service-image img' => 'object-fit:{{val}};'],
+			),
+			'service_image_object_pos' => array(
+				'type' => 'select',
+				'label' => __pl('object_pos'),
+				'screen' => 1,
+				'list' => array(
+					'' => __pl('none'),
+					'top' => __pl('top'),
+					'bottom' => __pl('bottom'),
+					'center' => __pl('center'),
+					'left' => __pl('left'),
+					'right' => __pl('right'),
+				),
+				'css' => ['{{element}} .pagelayer-service-image img' => 'object-position:{{val}};'],
+				'req' => [ '!service_image_object_fit' => ''],
 			),
 			'service_img_alignment' => array(
 				'type' => 'radio',
@@ -5145,6 +5284,14 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 					'service_button_size' => 'pagelayer-btn-custom',
 				]
 			),
+			'service_btn_stretch' => array(
+				'type' => 'checkbox',
+				'label' => __pl('stretch'),
+				'css' => ['{{element}} .pagelayer-service-btn' => 'width:100%;'],
+				'req' => array(
+					'service_button' => 'true'
+				),
+			),
 			'service_button_url' => array(
 				'type' => 'link',
 				'label' => __pl('service_btn_url_label'),
@@ -5246,11 +5393,124 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_service', array(
 				'show' => ['service_btn_state' => 'hover'],
 			),
 		],
+		'border_style' => [
+			'btn_bor_hover' => array(
+				'type' => 'radio',
+				'label' => __pl('state'),
+				'list' => array(
+					'' => __pl('normal'),
+					'hover' => __pl('hover'),
+				)
+			),	
+			'btn_border_type' => array(
+				'type' => 'select',
+				'label' => __pl('border_type'),
+				'css' => ['{{element}} .pagelayer-service-btn' => 'border-style: {{val}}'],
+				'list' => [
+					'' => __pl('none'),
+					'solid' => __pl('solid'),
+					'double' => __pl('double'),
+					'dotted' => __pl('dotted'),
+					'dashed' => __pl('dashed'),
+					'groove' => __pl('groove'),
+				],
+				'show' => array(
+					'btn_bor_hover' => ''
+				),
+			),
+			'btn_border_color' => array(
+				'type' => 'color',
+				'label' => __pl('border_color_label'),
+				'css' => ['{{element}} .pagelayer-service-btn' => 'border-color: {{val}};'],
+				'req' => array(
+					'!btn_border_type' => ''
+				),
+				'show' => array(
+					'btn_bor_hover' => ''
+				),
+			),
+			'btn_border_width' => array(
+				'type' => 'padding',
+				'label' => __pl('border_width'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn' => 'border-top-width: {{val[0]}}px; border-right-width: {{val[1]}}px; border-bottom-width: {{val[2]}}px; border-left-width: {{val[3]}}px'],
+				'req' => [
+					'!btn_border_type' => ''
+				],
+				'show' => array(
+					'btn_bor_hover' => ''
+				),
+			),
+			'btn_border_radius' => array(
+				'type' => 'padding',
+				'label' => __pl('border_radius'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn' => 'border-radius: {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px; -webkit-border-radius:  {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px;-moz-border-radius: {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px;'],
+				'req' => array(
+					'!btn_border_type' => ''
+				),
+				'show' => array(
+					'btn_bor_hover' => ''
+				),
+			),
+			'btn_border_type_hover' => array(
+				'type' => 'select',
+				'label' => __pl('border_type'),
+				'css' => ['{{element}} .pagelayer-service-btn:hover' => 'border-style: {{val}}'],
+				'list' => [
+					'' => __pl('none'),
+					'solid' => __pl('solid'),
+					'double' => __pl('double'),
+					'dotted' => __pl('dotted'),
+					'dashed' => __pl('dashed'),
+					'groove' => __pl('groove'),
+				],
+				'show' => array(
+					'btn_bor_hover' => 'hover'
+				),
+			),
+			'btn_border_color_hover' => array(
+				'type' => 'color',
+				'label' => __pl('border_color_hover_label'),
+				'css' => ['{{element}} .pagelayer-service-btn:hover' => 'border-color: {{val}};'],
+				'req' => array(
+					'!btn_border_type_hover' => ''
+				),
+				'show' => array(
+					'btn_bor_hover' => 'hover'
+				),
+			),
+			'btn_border_width_hover' => array(
+				'type' => 'padding',
+				'label' => __pl('border_width_hover'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn:hover' => 'border-top-width: {{val[0]}}px; border-right-width: {{val[1]}}px; border-bottom-width: {{val[2]}}px; border-left-width: {{val[3]}}px'],
+				'req' => [
+					'!btn_border_type_hover' => ''
+				],
+				'show' => array(
+					'btn_bor_hover' => 'hover'
+				),
+			),
+			'btn_border_radius_hover' => array(
+				'type' => 'padding',
+				'label' => __pl('border_radius_hover'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn:hover' => 'border-radius: {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px; -webkit-border-radius:  {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px;-moz-border-radius: {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px;'],
+				'req' => array(
+					'!btn_border_type_hover' => ''
+				),
+				'show' => array(
+					'btn_bor_hover' => 'hover'
+				),
+			),
+		],
 		'styles' => [
 			'service_img_style' => __pl('service_img_style'),
 			'service_heading_style' => __pl('service_heading_style'),
 			'service_content_style' => __pl('service_content_style'),
 			'service_btn_style' => __pl('service_btn_style'),
+			'border_style' => __pl('btn_border_style'),
 		],
 	)
 );
@@ -5280,7 +5540,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 			'service_icon' => array(
 				'type' => 'icon',
 				'label' => __pl('iconbox_font_icon_label'),
-				'default' => 'exclamation-circle',
+				'default' => 'fas fa-exclamation-circle',
 			),
 			'service_alignment' => array(
 				'type' => 'radio',
@@ -5355,7 +5615,9 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 			),
 			'service_icon_spacing' => array(
 				'type' => 'padding',
+				'screen' => 1,
 				'label' => __pl('service_icon_spacing'),
+				'screen' => 1,
 				'css' => ['{{element}} .pagelayer-service-icon' => 'padding-top:{{val[0]}}px; padding-right:{{val[1]}}px; padding-bottom:{{val[2]}}px; padding-left:{{val[3]}}px;'],
 			),
 			'service_icon_state' => array(
@@ -5377,7 +5639,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 			'service_icon_background_color' => array(
 				'type' => 'color',
 				'label' => __pl('service_icon_background_color'),
-				'default' => '#eff0f0ff',
+				'default' => '#eff0f0',
 				'css' => ['{{element}} .pagelayer-service-icon.pagelayer-service-stacked i' => 'background-color:{{val}};'],
 				'show' => ['service_icon_state' => 'normal'],
 				'req' => ['service_icon_view' => 'stacked']
@@ -5728,6 +5990,14 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 					'service_button_size' => 'pagelayer-btn-custom',
 				]
 			),
+			'service_btn_stretch' => array(
+				'type' => 'checkbox',
+				'label' => __pl('stretch'),
+				'css' => ['{{element}} .pagelayer-service-btn' => 'width:100%;'],
+				'req' => array(
+					'service_button' => 'true'
+				),
+			),
 			'service_button_url' => array(
 				'type' => 'link',
 				'label' => __pl('iconbox_btn_url_label'),
@@ -5829,12 +6099,125 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_iconbox', array(
 				'show' => ['service_btn_state' => 'hover'],
 			),
 		],
+		'border_style' => [
+			'btn_bor_hover' => array(
+				'type' => 'radio',
+				'label' => __pl('state'),
+				'list' => array(
+					'' => __pl('normal'),
+					'hover' => __pl('hover'),
+				)
+			),	
+			'btn_border_type' => array(
+				'type' => 'select',
+				'label' => __pl('border_type'),
+				'css' => ['{{element}} .pagelayer-service-btn' => 'border-style: {{val}}'],
+				'list' => [
+					'' => __pl('none'),
+					'solid' => __pl('solid'),
+					'double' => __pl('double'),
+					'dotted' => __pl('dotted'),
+					'dashed' => __pl('dashed'),
+					'groove' => __pl('groove'),
+				],
+				'show' => array(
+					'btn_bor_hover' => ''
+				),
+			),
+			'btn_border_color' => array(
+				'type' => 'color',
+				'label' => __pl('border_color_label'),
+				'css' => ['{{element}} .pagelayer-service-btn' => 'border-color: {{val}};'],
+				'req' => array(
+					'!btn_border_type' => ''
+				),
+				'show' => array(
+					'btn_bor_hover' => ''
+				),
+			),
+			'btn_border_width' => array(
+				'type' => 'padding',
+				'label' => __pl('border_width'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn' => 'border-top-width: {{val[0]}}px; border-right-width: {{val[1]}}px; border-bottom-width: {{val[2]}}px; border-left-width: {{val[3]}}px'],
+				'req' => [
+					'!btn_border_type' => ''
+				],
+				'show' => array(
+					'btn_bor_hover' => ''
+				),
+			),
+			'btn_border_radius' => array(
+				'type' => 'padding',
+				'label' => __pl('border_radius'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn' => 'border-radius: {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px; -webkit-border-radius:  {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px;-moz-border-radius: {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px;'],
+				'req' => array(
+					'!btn_border_type' => ''
+				),
+				'show' => array(
+					'btn_bor_hover' => ''
+				),
+			),
+			'btn_border_type_hover' => array(
+				'type' => 'select',
+				'label' => __pl('border_type'),
+				'css' => ['{{element}} .pagelayer-service-btn:hover' => 'border-style: {{val}}'],
+				'list' => [
+					'' => __pl('none'),
+					'solid' => __pl('solid'),
+					'double' => __pl('double'),
+					'dotted' => __pl('dotted'),
+					'dashed' => __pl('dashed'),
+					'groove' => __pl('groove'),
+				],
+				'show' => array(
+					'btn_bor_hover' => 'hover'
+				),
+			),
+			'btn_border_color_hover' => array(
+				'type' => 'color',
+				'label' => __pl('border_color_hover_label'),
+				'css' => ['{{element}} .pagelayer-service-btn:hover' => 'border-color: {{val}};'],
+				'req' => array(
+					'!btn_border_type_hover' => ''
+				),
+				'show' => array(
+					'btn_bor_hover' => 'hover'
+				),
+			),
+			'btn_border_width_hover' => array(
+				'type' => 'padding',
+				'label' => __pl('border_width_hover'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn:hover' => 'border-top-width: {{val[0]}}px; border-right-width: {{val[1]}}px; border-bottom-width: {{val[2]}}px; border-left-width: {{val[3]}}px'],
+				'req' => [
+					'!btn_border_type_hover' => ''
+				],
+				'show' => array(
+					'btn_bor_hover' => 'hover'
+				),
+			),
+			'btn_border_radius_hover' => array(
+				'type' => 'padding',
+				'label' => __pl('border_radius_hover'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-service-btn:hover' => 'border-radius: {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px; -webkit-border-radius:  {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px;-moz-border-radius: {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px;'],
+				'req' => array(
+					'!btn_border_type_hover' => ''
+				),
+				'show' => array(
+					'btn_bor_hover' => 'hover'
+				),
+			),
+		],
 		'styles' => [
 			'service_icon_style' => __pl('service_icon_style'),
 			'service_icon_border' => __pl('service_icon_border'),
 			'service_heading_style' => __pl('service_heading_style'),
 			'service_content_style' => __pl('service_content_style'),
 			'service_btn_style' => __pl('service_btn_style'),
+			'border_style' => __pl('btn_border_style'),
 		],
 	)
 );
@@ -6141,12 +6524,12 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_accordion', array(
 			'icon' => array(
 				'type' => 'icon',
 				'label' => __pl('list_icon_label'),
-				'default' => 'plus',
+				'default' => 'fas fa-plus',
 			),
 			'active_icon' => array(
 				'type' => 'icon',
 				'label' => __pl('Active Icon'),
-				'default' => 'minus',
+				'default' => 'fas fa-minus',
 			),
 			'icon_align' => array(
 				'type' => 'radio',
@@ -6225,6 +6608,13 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_accordion', array(
 				'screen' => 1,
 				'css' => ['{{element}} .pagelayer-accordion-panel' => 'font-family: {{val[0]}}; font-size: {{val[1]}}px !important; font-style: {{val[2]}} !important; font-weight: {{val[3]}} !important; font-variant: {{val[4]}} !important; text-decoration-line: {{val[5]}} !important; text-decoration-style: {{val[6]}} !important; line-height: {{val[7]}}em !important; text-transform: {{val[8]}} !important; letter-spacing: {{val[9]}}px !important; word-spacing: {{val[10]}}px !important;'],
 			),
+			'acc_content_padding' => array(
+				'type' => 'padding',
+				'label' => __pl('padding'),
+				'units' => ['px', '%', 'em'],
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-accordion-panel' => 'padding: {{val[0]}} {{val[1]}} {{val[2]}} {{val[3]}}'],
+			),
 			'acc_border_type' => array(
 				'type' => 'select',
 				'label' => __pl('border_type'),
@@ -6256,6 +6646,12 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_accordion', array(
 					'!acc_border_type' => ''
 				],
 				'css' => ['{{element}} .pagelayer-accordion_item' => 'border-top-width: {{val[0]}}px; border-right-width: {{val[1]}}px; border-bottom-width: {{val[2]}}px; border-left-width: {{val[3]}}px', '{{element}} .pagelayer-accordion_item .pagelayer-accordion-panel' => 'border-width: {{val[0]}}px 0 0 0'],
+			),
+			'acc_border_radius' => array(
+				'type' => 'padding',
+				'label' => __pl('border_radius'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-accordion_item' => 'border-radius: {{val[0]}}px {{val[1]}}px {{val[2]}}px {{val[3]}}px '],
 			)
 		],
 		'styles' => [
@@ -6337,12 +6733,12 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_collapse', array(
 			'icon' => array(
 				'type' => 'icon',
 				'label' => __pl('list_icon_label'),
-				'default' => 'plus',
+				'default' => 'fas fa-plus',
 			),
 			'active_icon' => array(
 				'type' => 'icon',
 				'label' => __pl('Active icon'),
-				'default' => 'minus'
+				'default' => 'fas fa-minus'
 			),
 			'icon_align' => array(
 				'type' => 'radio',
@@ -6415,6 +6811,13 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_collapse', array(
 				'label' => __pl('Background Color '),
 				'default' => '#ffffff',
 				'css' => ['{{element}} .pagelayer-accordion_item .pagelayer-accordion-panel'=> 'background-color:{{val}}'],
+			),
+			'acc_content_padding' => array(
+				'type' => 'padding',
+				'label' => __pl('padding'),
+				'units' => ['px', '%', 'em'],
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-accordion_item .pagelayer-accordion-panel' => 'padding: {{val[0]}} {{val[1]}} {{val[2]}} {{val[3]}}'],
 			),
 			'acc_border_type' => array(
 				'type' => 'select',
@@ -6692,7 +7095,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_testimonial', array(
 			'cite_color' => array(
 				'type' => 'color',
 				'label' => __pl('testimonial_name_color_label'),
-				'default' => '#426870ff',
+				'default' => '#426870',
 				'css' => ['{{element}}  .pagelayer-testimonial-author ' => 'color:{{val}}'],
 			),
 			'cite_style' => array(
@@ -6726,7 +7129,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_testimonial', array(
 			'designation_color' => array(
 				'type' => 'color',
 				'label' => __pl('testimonial_title_color_label'),
-				'default' => '#9cafc0ff',
+				'default' => '#9cafc0',
 				'css' => ['{{element}} .pagelayer-testimonial-author-title' => 'color:{{val}}'],
 			),
 			'cite_designation_style' => array(
@@ -6805,7 +7208,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_progress', array(
 			'title_color' => array(
 				'type' => 'color',
 				'label' => __pl('title_color'),
-				'default' => '#768589ff',
+				'default' => '#768589',
 				'css' => ['{{element}} .pagelayer-progress-title' => 'color:{{val}};'],
 			),
 			'title_style' => array(
@@ -6931,7 +7334,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_alert', array(
 			'alert_icon' => array(
 				'type' => 'icon',
 				'label' => __pl('alert_icon'),
-				'default' => 'exclamation',
+				'default' => 'fas fa-exclamation',
 			),
 			'alert_icon_color' => array(
 				'type' => 'color',
@@ -7146,7 +7549,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_divider', array(
 			'divider_color' => array(
 				'type' => 'color',
 				'label' => __pl('divider_color'),
-				'default' => '#3E8EF7',
+				'default' => '#999',
 				'css' => ['{{element}} .pagelayer-divider-seperator' => 'border-top-color: {{val}};'],
 			),
 			'divider_weight' => array(
@@ -7154,7 +7557,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_divider', array(
 				'label' => __pl('divider_border_weight'),
 				'min' => 1,
 				'max' => 30,
-				'default' => 3,
+				'default' => 1,
 				'screen' => 1,
 				'css' => ['{{element}} .pagelayer-divider-seperator' =>'border-top-width: {{val}}px;'],
 			),
@@ -7163,7 +7566,7 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_divider', array(
 				'label' => __pl('divider_border_width'),
 				'min' => 1,
 				'max' => 100,
-				'default' => 50,
+				'default' => 100,
 				'screen' => 1,
 				'css' => ['{{element}} .pagelayer-divider-seperator' =>'width: {{val}}%;'],
 			),
@@ -7308,6 +7711,214 @@ pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_counter', array(
 			'counter_style' => __pl('counter_style'),
 		],
 	)			
+);
+
+// Address
+pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_address', array(
+		'name' => __pl('address'),
+		'group' => 'other',
+		'func' => 'pagelayer_sc_address',
+		'icon' => 'fas fa-map-marker-alt',
+		'html' => '<div class="pagelayer-address-holder">
+			<span class="pagelayer-address-icon"><i class="{{icon}}"></i></span>
+			<span class="pagelayer-address">'.pagelayer_get_option('pagelayer-address').'</span>
+		</div>',
+		'params' => array(
+			'color' => array(
+				'type' => 'color',
+				'label' => __pl('color'),
+				'css' => ['{{element}} .pagelayer-address *, {{element}} .pagelayer-address' => 'color:{{val}}'],
+			),
+			'typography' => array(
+				'type' => 'typography',
+				'label' => __pl('typography'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-address *, {{element}} .pagelayer-address' => 'font-family: {{val[0]}}; font-size: {{val[1]}}px !important; font-style: {{val[2]}} !important; font-weight: {{val[3]}} !important; font-variant: {{val[4]}} !important; text-decoration-line: {{val[5]}} !important; text-decoration-style: {{val[6]}} !important; line-height: {{val[7]}}em !important; text-transform: {{val[8]}} !important; letter-spacing: {{val[9]}}px !important; word-spacing: {{val[10]}}px !important;'],
+			),
+			'align' => array(
+				'type' => 'radio',
+				'label' => __pl('alignment'),
+				'screen' => 1,
+				'list' => [
+					'flex-start' => __pl('left'),
+					'center' => __pl('center'),
+					'flex-end' => __pl('right'),
+				],
+				'css' => ['{{element}} .pagelayer-address-holder' => 'justify-content: {{val}}'],
+			),
+			'space' => array(
+				'type' => 'slider',
+				'label' => __pl('space'),
+				'min' => 0,
+				'max' => 100,
+				'step' => 1,
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-address-icon' => 'margin-right: {{val}}px;']
+			),
+		),
+		'icon_style' =>[
+			'icon' => array(
+				'type' => 'icon',
+				'label' => __pl('icon'),
+				'default' => 'fas fa-map-marker-alt'
+			),
+			'icon_color' => array(
+				'type' => 'color',
+				'label' => __pl('color'),
+				'css' => ['{{element}} .pagelayer-address-icon i' => 'color:{{val}}'],
+			),
+			'icon_size' => array(
+				'type' => 'slider',
+				'label' => __pl('size'),
+				'min' => 0,
+				'max' => 100,
+				'step' => 1,
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-address-icon i' => 'font-size: {{val}}px;']
+			),
+		],
+		'styles' => [
+			'icon_style' => __pl('icon_style')
+		]
+	)
+);
+
+// Email
+pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_email', array(
+		'name' => __pl('email'),
+		'group' => 'other',
+		'func' => 'pagelayer_sc_email',
+		'icon' => 'fas fa-envelope',
+		'html' => '<div class="pagelayer-email-holder">
+			<span class="pagelayer-email-icon"><i class="{{icon}}"></i></span>
+			<span class="pagelayer-email">'.pagelayer_get_option('pagelayer_cf_to_email').'</span></div>',
+		'params' => array(
+			'color' => array(
+				'type' => 'color',
+				'label' => __pl('color'),
+				'css' => ['{{element}} .pagelayer-email *, {{element}} .pagelayer-email' => 'color:{{val}}'],
+			),
+			'typography' => array(
+				'type' => 'typography',
+				'label' => __pl('typography'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-email *, {{element}} .pagelayer-email' => 'font-family: {{val[0]}}; font-size: {{val[1]}}px !important; font-style: {{val[2]}} !important; font-weight: {{val[3]}} !important; font-variant: {{val[4]}} !important; text-decoration-line: {{val[5]}} !important; text-decoration-style: {{val[6]}} !important; line-height: {{val[7]}}em !important; text-transform: {{val[8]}} !important; letter-spacing: {{val[9]}}px !important; word-spacing: {{val[10]}}px !important;'],
+			),
+			'align' => array(
+				'type' => 'radio',
+				'label' => __pl('alignment'),
+				'screen' => 1,
+				'list' => [
+					'flex-start' => __pl('left'),
+					'center' => __pl('center'),
+					'flex-end' => __pl('right'),
+				],
+				'css' => ['{{element}} .pagelayer-email-holder' => 'justify-content: {{val}}'],
+			),
+			'space' => array(
+				'type' => 'slider',
+				'label' => __pl('space'),
+				'min' => 0,
+				'max' => 100,
+				'step' => 1,
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-email-icon' => 'margin-right: {{val}}px;']
+			),
+		),
+		'icon_style' =>[
+			'icon' => array(
+				'type' => 'icon',
+				'label' => __pl('icon'),
+				'default' => 'fas fa-envelope'
+			),
+			'icon_color' => array(
+				'type' => 'color',
+				'label' => __pl('color'),
+				'css' => ['{{element}} .pagelayer-email-icon i' => 'color:{{val}}'],
+			),
+			'icon_size' => array(
+				'type' => 'slider',
+				'label' => __pl('size'),
+				'min' => 0,
+				'max' => 100,
+				'step' => 1,
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-email-icon i' => 'font-size: {{val}}px;']
+			),
+		],
+		'styles' => [
+			'icon_style' => __pl('icon_style')
+		]
+	)
+);
+
+// Phone
+pagelayer_add_shortcode(PAGELAYER_SC_PREFIX.'_phone', array(
+		'name' => __pl('phone'),
+		'group' => 'other',
+		'func' => 'pagelayer_sc_phone',
+		'icon' => 'fas fa-phone-alt',
+		'html' => '<div class="pagelayer-phone-holder">
+			<span class="pagelayer-phone-icon"><i class="{{icon}}"></i></span>
+			<span class="pagelayer-phone">'.pagelayer_get_option('pagelayer-phone').'</span></div>',
+		'params' => array(
+			'color' => array(
+				'type' => 'color',
+				'label' => __pl('color'),
+				'css' => ['{{element}} .pagelayer-phone *, {{element}} .pagelayer-phone' => 'color:{{val}}'],
+			),
+			'typography' => array(
+				'type' => 'typography',
+				'label' => __pl('typography'),
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-phone *, {{element}} .pagelayer-phone' => 'font-family: {{val[0]}}; font-size: {{val[1]}}px !important; font-style: {{val[2]}} !important; font-weight: {{val[3]}} !important; font-variant: {{val[4]}} !important; text-decoration-line: {{val[5]}} !important; text-decoration-style: {{val[6]}} !important; line-height: {{val[7]}}em !important; text-transform: {{val[8]}} !important; letter-spacing: {{val[9]}}px !important; word-spacing: {{val[10]}}px !important;'],
+			),
+			'align' => array(
+				'type' => 'radio',
+				'label' => __pl('alignment'),
+				'screen' => 1,
+				'list' => [
+					'flex-start' => __pl('left'),
+					'center' => __pl('center'),
+					'flex-end' => __pl('right'),
+				],
+				'css' => ['{{element}} .pagelayer-phone-holder' => 'justify-content: {{val}}'],
+			),
+			'space' => array(
+				'type' => 'slider',
+				'label' => __pl('space'),
+				'min' => 0,
+				'max' => 100,
+				'step' => 1,
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-phone-icon' => 'margin-right: {{val}}px;']
+			),
+		),
+		'icon_style' =>[
+			'icon' => array(
+				'type' => 'icon',
+				'label' => __pl('icon'),
+				'default' => 'fas fa-phone-alt'
+			),
+			'icon_color' => array(
+				'type' => 'color',
+				'label' => __pl('color'),
+				'css' => ['{{element}} .pagelayer-phone-icon i' => 'color:{{val}}'],
+			),
+			'icon_size' => array(
+				'type' => 'slider',
+				'label' => __pl('size'),
+				'min' => 0,
+				'max' => 100,
+				'step' => 1,
+				'screen' => 1,
+				'css' => ['{{element}} .pagelayer-phone-icon i' => 'font-size: {{val}}px;']
+			),
+		],
+		'styles' => [
+			'icon_style' => __pl('icon_style')
+		]
+	)
 );
 
 // Body Settings

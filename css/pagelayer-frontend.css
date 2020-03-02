@@ -24,108 +24,41 @@
 transition:0.5s;
 }
 
-.pagelayer-img{
-vertical-align:bottom;
+/* Experimental All FLEX code 
+.pagelayer-ele,
+.pagelayer-ele-wrap,*/
+
+/*Flex - Rows and Cols*/ 
+.pagelayer-row,
+.pagelayer-inner_row,
+.pagelayer-row-holder,
+.pagelayer-col,
+.pagelayer-col-holder{
+box-sizing: border-box;
+display: flex;
+flex: 1 0 auto;
+flex-direction: row;
+flex-wrap: wrap;
+width:100%;
+align-content: stretch;
+position: relative;
 }
 
-/* To give no decoration to a link for a pagelayer element */
-.pagelayer-ele-link{
-text-decoration:none;
-box-shadow:none !important;
-border:none;
+/* The col holder should be flex-start and not stretch because elements in it should take automatic height */
+.pagelayer-col,
+.pagelayer-col-holder{
+align-content: flex-start;
 }
 
-.pagelayer-bgimg-slider{
-position: absolute;
-top: 0;
-left: 0;
-height: 100%;
+/* Each immediate element in the col-holder should have full width */ 
+.pagelayer-col-holder>div{
 width: 100%;
 }
 
-.pagelayer-bgimg-slide {
-position: absolute;
-width: 100%;
-top: 0;
-left: 0;
-height: 100%;
-transition: all 1s ease-in-out;
-background-position: center center;
-background-repeat: no-repeat;
-background-size: cover;
-opacity: 0;
-}
 
-.pagelayer-slide-show {
-opacity: 1;
-}
 
-.pagelayer-row-overlay,
-.pagelayer-col-overlay{
-position: absolute;
-width: 100%;
-height: 100%;
-right: 0px;
-top: 0px;
-z-index: -1;
-pointer-events:none;
-}
-
-.pagelayer-col-holder,
-.pagelayer-col{
-position:relative;
-}
-
-/* Row holder is also given this now */
-.pagelayer-row>.pagelayer-row{
-width:100%;
-}
-
-/* For owl-carousel */
-.pagelayer-row-holder .pagelayer-col:only-child{
-width:100%;
-}
-
-.pagelayer-row-shape{
-width:100%;
-position:absolute;
-top:0;
-left:0;
-right:0;
-bottom:0;
-line-height:0;
-overflow:hidden;
-}
-
-.pagelayer-row-svg{
-position:relative;
-height:100%;
-}
-
-.pagelayer-row-svg svg{
-width:100%;
-position:absolute;
-}
-
-.pagelayer-row-svg svg.pagelayer-svg-top{
-top:-1px;
-}
-
-.pagelayer-row-svg svg.pagelayer-svg-bottom{
-bottom:-1px;
-}
-
-.pagelayer-row {
-position:relative;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap; }
-  @media (max-width: 768px) {
-    .pagelayer-row {
-      flex-direction: column;
-      flex-wrap: nowrap; } }
-  .pagelayer-row.pagelayer-auto .pagelayer-col {
-    flex-grow: 1; }
+.pagelayer-row.pagelayer-auto .pagelayer-col {
+flex-grow: 1; }
 
 .pagelayer-col-1 {
   width: 8.33333%; }
@@ -295,6 +228,83 @@ position:relative;
 
 /**************My Style for front-end *********/
 
+.pagelayer-img{
+vertical-align:bottom;
+max-width: 100%;
+}
+
+/* To give no decoration to a link for a pagelayer element */
+.pagelayer-ele-link{
+text-decoration:none;
+box-shadow:none !important;
+border:none;
+}
+
+.pagelayer-bgimg-slider{
+position: absolute;
+top: 0;
+left: 0;
+height: 100%;
+width: 100%;
+}
+
+.pagelayer-bgimg-slide {
+position: absolute;
+width: 100%;
+top: 0;
+left: 0;
+height: 100%;
+transition: all 1s ease-in-out;
+background-position: center center;
+background-repeat: no-repeat;
+background-size: cover;
+opacity: 0;
+}
+
+.pagelayer-slide-show {
+opacity: 1;
+}
+
+.pagelayer-row-overlay,
+.pagelayer-col-overlay{
+position: absolute;
+width: 100%;
+height: 100%;
+right: 0px;
+top: 0px;
+z-index: -1;
+pointer-events:none;
+}
+
+.pagelayer-row-shape{
+width:100%;
+position:absolute;
+top:0;
+left:0;
+right:0;
+bottom:0;
+line-height:0;
+overflow:hidden;
+}
+
+.pagelayer-row-svg{
+position:relative;
+height:100%;
+}
+
+.pagelayer-row-svg svg{
+width:100%;
+position:absolute;
+}
+
+.pagelayer-row-svg svg.pagelayer-svg-top{
+top:-1px;
+}
+
+.pagelayer-row-svg svg.pagelayer-svg-bottom{
+bottom:-1px;
+}
+
 .pagelayer-height-fit{
 height:100vh;
 }
@@ -335,6 +345,7 @@ max-width: none;
 }
 
 .pagelayer-service-container{
+position:relative;
 -webkit-box-align: start;
 -webkit-align-items: flex-start;
 -ms-flex-align: start;
@@ -1701,7 +1712,7 @@ width:100%;
 }
 
 .pagelayer-list-ul{
-margin-bottom:0;
+margin:0;
 padding:0;	
 }
 
@@ -1919,7 +1930,7 @@ vertical-align:middle;
 .pagelayer-stars-container{
 text-align:center;
 color: #ccd6df;
-font-family:"FontAwesome";
+font-family: "FontAwesome", "Font Awesome 5 Free";
 display: inline-block;
 position: relative;
 border-color: 1px solid #ccd6df;
@@ -1937,6 +1948,7 @@ font-family: inherit;
 overflow: hidden;
 color: #f0ad4e;
 position:absolute;
+font-weight:900;
 top:0;
 left:0;
 }
@@ -1994,6 +2006,11 @@ text-align: center;
 
 .pagelayer-wp-title-heading{
 padding:5px 20px;
+font-size: 20px;
+font-weight: 500;
+text-decoration-style: solid !important;
+margin: 0px;
+transition: all 400ms;
 }
 
 .pagelayer-wp-title-img{
@@ -2534,6 +2551,9 @@ height:100%;
 }
 
 /* accordion style */
+.pagelayer-accordion_item{
+overflow:hidden;
+}
 
 .pagelayer-accordion-tabs {
 cursor: pointer;
@@ -2836,6 +2856,10 @@ position:absolute;
 transform:translate(-50%, -53%);
 }
 
+.pagelayer-owl-dot{
+vertical-align: middle;
+}
+
 /* PageLayer Owl End */
 
 /* Space Widget */
@@ -2843,3 +2867,23 @@ transform:translate(-50%, -53%);
 height: 10px;
 }
 /* Space Widget End */
+
+/* Address and Number */
+
+.pagelayer-phone-holder,
+.pagelayer-address-holder,
+.pagelayer-email-holder{
+display:flex;
+}
+
+.pagelayer-address-icon,
+.pagelayer-address,
+.pagelayer-phone-icon,
+.pagelayer-phone,
+.pagelayer-email-icon,
+.pagelayer-email{
+margin-top:auto;
+margin-bottom:auto;
+}
+
+/* Address and Number End */

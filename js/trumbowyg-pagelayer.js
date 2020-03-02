@@ -57,6 +57,18 @@
 		colorList: ['ffffff', '000000', 'eeece1', '1f497d', '4f81bd', 'c0504d', '9bbb59', '8064a2', '4bacc6', 'f79646', 'ffff00', 'f2f2f2', '7f7f7f', 'ddd9c3', 'c6d9f0', 'dbe5f1', 'f2dcdb', 'ebf1dd', 'e5e0ec', 'dbeef3', 'fdeada', 'fff2ca', 'd8d8d8', '595959', 'c4bd97', '8db3e2', 'b8cce4', 'e5b9b7', 'd7e3bc', 'ccc1d9', 'b7dde8', 'fbd5b5', 'ffe694', 'bfbfbf', '3f3f3f', '938953', '548dd4', '95b3d7', 'd99694', 'c3d69b', 'b2a2c7', 'b7dde8', 'fac08f', 'f2c314', 'a5a5a5', '262626', '494429', '17365d', '366092', '953734', '76923c', '5f497a', '92cddc', 'e36c09', 'c09100', '7f7f7f', '0c0c0c', '1d1b10', '0f243e', '244061', '632423', '4f6128', '3f3151', '31859b', '974806', '7f6000']
 	};
  
+	// Default Options for font-size
+	var fontSizedefaultOptions = {
+		sizeList: ['x-small', 'small', 'medium', 'large', 'x-large'],
+		allowCustomSize: true
+	};
+	
+	// Default Options for line height
+	var lineHeightOptions = {
+		sizeList: ['0.9', '1', '1.5', '2.0', '2.5','3.0', '3.5', '4.0', '4.5', '5.0'],
+		allowCustomSize: true
+	};
+	
 	// If WP media is a button
 	function openwpmediaDef(trumbowyg) {
 		return {
@@ -123,8 +135,33 @@
 			en: {
 				wpmedia: 'Insert Image',
 				foreColor: 'Text color',
-				backColor: 'Background color'
-			}
+				backColor: 'Background color',
+				fontsize: 'Font size',
+				fontsizes: {
+					'x-small': 'Extra small',
+					'small': 'Small',
+					'medium': 'Regular',
+					'large': 'Large',
+					'x-large': 'Extra large',
+					'custom': 'Custom'
+				},
+				fontCustomSize: {
+					title: 'Custom Font Size',
+					label: 'Font Size',
+					value: '48px'
+				},
+				lineheight: 'Line Height',
+				lineCustomHeight: {
+					title: 'Custom Line Height',
+					label: 'Line Height',
+					value: '7.0'
+				},
+				lineheights: {
+					'normal': 'Normal',
+					'custom': 'Custom',
+				}
+			},
+			
 		},
 		// Add our plugin to Trumbowyg registred plugins
 		plugins: {
@@ -186,6 +223,29 @@
 						pagelayer_editable_paste_handler(pasteEvent, pagelayer_ajax_func);
 					});
 				}
+			},
+			fontsize: {
+				init: function (trumbowyg) {
+					trumbowyg.o.plugins.fontsize = $.extend({},
+						fontSizedefaultOptions,
+						trumbowyg.o.plugins.fontsize || {}
+					);
+					trumbowyg.addBtnDef('fontsize', {
+						dropdown: fontSizeBuildDropdown(trumbowyg)
+					});
+				}
+			},
+			lineheight: {
+				init: function (trumbowyg) {
+					trumbowyg.o.plugins.lineheight = $.extend({},
+					  lineHeightOptions,
+					  trumbowyg.o.plugins.lineheight || {}
+					);
+
+					trumbowyg.addBtnDef('lineheight', {
+						dropdown: lineHeightDropdown(trumbowyg)
+					});
+				}
 			}
 		}
 	});
@@ -244,6 +304,125 @@
 		return dropdown;
 	}
 	
+	// Functions for font-size widget
+	function setFontSize(trumbowyg, size) {
+		trumbowyg.$ed.focus();
+		trumbowyg.saveRange();
+		var text = trumbowyg.range.startContainer.parentElement;
+		var selectedText = trumbowyg.getRangeText();
+		if ($(text).html() === selectedText) {
+			$(text).css('font-size', size);
+		} else {
+			trumbowyg.range.deleteContents();
+			var html = '<span style="font-size: ' + size + ';">' + selectedText + '</span>';
+			var node = $(html)[0];
+			trumbowyg.range.insertNode(node);
+		}
+	}
+
+	function fontSizeBuildDropdown(trumbowyg) {
+		var dropdown = [];
+
+		$.each(trumbowyg.o.plugins.fontsize.sizeList, function (index, size) {
+			trumbowyg.addBtnDef('fontsize_' + size, {
+				text: '<span style="font-size: ' + size + ';">' + (trumbowyg.lang.fontsizes[size] || size) + '</span>',
+				hasIcon: false,
+				fn: function () {
+					setFontSize(trumbowyg, size);
+					trumbowyg.syncCode();
+					trumbowyg.$c.trigger('tbwchange');
+				}
+			});
+			dropdown.push('fontsize_' + size);
+		});
+
+		if (trumbowyg.o.plugins.fontsize.allowCustomSize) {
+			var customSizeButtonName = 'fontsize_custom';
+			var customSizeBtnDef = {
+				fn: function () {
+					trumbowyg.openModalInsert(trumbowyg.lang.fontCustomSize.title,
+						{
+							size: {
+								label: trumbowyg.lang.fontCustomSize.label,
+								value: trumbowyg.lang.fontCustomSize.value
+							}
+						},
+						function (form) {
+							setFontSize(trumbowyg, form.size);
+							return true;
+						}
+					);
+				},
+				text: '<span style="font-size: medium;">' + trumbowyg.lang.fontsizes.custom + '</span>',
+				hasIcon: false
+			};
+			trumbowyg.addBtnDef(customSizeButtonName, customSizeBtnDef);
+			dropdown.push(customSizeButtonName);
+		}
+
+		return dropdown;
+	}
+	
+	// Build the dropdown for line-height
+	function lineHeightDropdown(trumbowyg) {
+		var dropdown = [];
+
+		$.each(trumbowyg.o.plugins.lineheight.sizeList, function(index, size) {
+			trumbowyg.addBtnDef('lineheight_' + size, {
+				text: trumbowyg.lang.lineheights[size] || size,
+				hasIcon: false,
+				fn: function(){
+					setLineHight(trumbowyg, size);
+				}
+			});
+			dropdown.push('lineheight_' + size);
+		});
+		
+		if (trumbowyg.o.plugins.lineheight.allowCustomSize) {
+			var customSizeButtonName = 'lineheight_custom';
+			var customSizeBtnDef = {
+				fn: function () {
+					trumbowyg.openModalInsert(trumbowyg.lang.lineCustomHeight.title,
+						{
+							size: {
+								label: trumbowyg.lang.lineCustomHeight.label,
+								value: trumbowyg.lang.lineCustomHeight.value
+							}
+						},
+						function (form) {
+							setLineHight(trumbowyg, form.size);
+							return true;
+						}
+					);
+				},
+				text: '<span style="font-size: medium;">' + trumbowyg.lang.lineheights.custom + '</span>',
+				hasIcon: false
+			};
+			trumbowyg.addBtnDef(customSizeButtonName, customSizeBtnDef);
+			dropdown.push(customSizeButtonName);
+		}
+
+		return dropdown;
+	}
+	
+	// Set line-height
+	function setLineHight(trumbowyg, size) {
+		trumbowyg.$ed.focus();
+		trumbowyg.saveRange();
+		var parent = trumbowyg.range.startContainer.parentElement;
+		var text = trumbowyg.getRangeText();
+		if ($(parent).html() === text) {
+			$(parent).css('line-height', size);
+		} else {
+			trumbowyg.range.deleteContents();
+			var html = '<span style="line-height: ' + size + ';">' + text + '</span>';
+			var node = $(html)[0];
+			trumbowyg.range.insertNode(node);
+		}
+		trumbowyg.syncCode();
+		trumbowyg.$c.trigger('tbwchange');
+			
+	}
+	
 })(jQuery);
- 
  

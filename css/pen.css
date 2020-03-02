@@ -57,9 +57,9 @@
 .pen textarea{font-size:14px;border:none;background:none;width:100%;_height:200px;min-height:200px;resize:none;}
 
 .pen-menu [class^="icon-"]:before, .pen-menu [class*=" icon-"]:before {
-  font-family: "fontawesome";
+  font-family: "Font Awesome 5 Free";
   font-style: normal;
-  font-weight: normal;
+  font-weight: 900;
   speak: none;
   display: inline-block;
   text-decoration: inherit;
@@ -86,6 +86,7 @@
 .pen-menu .icon-insertunorderedlist:before { content: '\e802'; } /* '' */
 .pen-menu .icon-insertorderedlist:before { content: '\e803'; } /* '' */
 .pen-menu .icon-strikethrough:before { content: "\f0cc"; } /* '' */
+.pen-menu .icon-strike:before { content: "\f0cc"; } /* '' */
 .pen-menu .icon-underline:before { content: "\f0cd"; } /* '' */
 .pen-menu .icon-blockquote:before { content: '\e814'; } /* '' */
 .pen-menu .icon-undo:before { content: '\e817'; } /* '' */

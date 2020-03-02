@@ -16,7 +16,7 @@ jQuery(window).resize(function(){
 	// Set a timeout to prevent bubbling
 	setTimeout(function(){
 
-		jQuery('.pagelayer-row-stretch-full').each(function(){
+		jQuery(pagelayer_editable+' .pagelayer-row-stretch-full').each(function(){
 			var par = jQuery(this).parent();
 			pagelayer_pl_row_parent_full(par);
 		});
@@ -68,7 +68,7 @@ function pagelayer_render_pl_col(el){
 	}
 	
 	if(el.atts['col_width']){
-		par.css('width', el.atts['col_width']+'%');
+		par.css('width', '');
 	}
 	
 	pagelayer_bg_video(el);
@@ -313,6 +313,25 @@ function pagelayer_social(jEle,sel){
 	//console.log(icon_splited);
 	holder.addClass('pagelayer-'+icon_splited[1]);
 	
+}
+
+function pagelayer_social_icon_onchange(jEle, row, val){
+	
+	var url = '';
+	
+	// Lets get the value of the nearest social icon
+	for(var k in pagelayer_social_urls){
+		var patt = new RegExp(k, 'i');
+		if(patt.test(val)){
+			url = pagelayer_social_urls[k];
+		}
+	}
+	
+	if(url.length > 0){
+		var social_url_row = row.parent().find('[pagelayer-elp-name="social_url"]');
+		//console.log(social_url_row);
+		social_url_row.find('.pagelayer-elp-link').val(url).trigger('change');
+	}
 }
 
 // Render the social icon

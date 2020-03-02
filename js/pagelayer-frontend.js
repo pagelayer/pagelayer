@@ -113,6 +113,24 @@ function pagelayer_isVisible(ele) {
 	
 	return false;
 }
+
+// Get media mode
+function pagelayer_get_media_mode(){
+	
+	if(window.matchMedia("(min-width: "+ (pagelayer_settings['tablet_breakpoint'] + 1) +"px)").matches){
+		return 'desktop';
+	}
+	
+	if(window.matchMedia("(max-width: "+ pagelayer_settings['tablet_breakpoint'] +"px) and (min-width: "+ (pagelayer_settings['mobile_breakpoint'] + 1) +"px)").matches){
+		return 'tablet';
+	}
+	
+	if(window.matchMedia("(max-width: "+ pagelayer_settings['mobile_breakpoint'] +"px)").matches){
+		return 'mobile';
+	}
+	
+	return 'desktop';
+}
 	  
 // Row background video and parallax
 function pagelayer_pl_row_video(jEle){
@@ -216,7 +234,7 @@ function pagelayer_pl_tabs(jEle) {
 		
 		var icon = '';
 		if(tEle.attr('pagelayer-tab-icon')){
-			icon = "fa fa-"+tEle.attr('pagelayer-tab-icon');
+			icon = tEle.attr('pagelayer-tab-icon');
 		}
 		
 		// Set the default tab
@@ -282,8 +300,8 @@ function pagelayer_pl_accordion(jEle){
 	
 	var setup = tabs.attr('pagelayer-setup');
 	
-	var icon = 'fa fa-'+holder.attr('data-icon');
-	var active_icon = 'fa fa-'+holder.attr('data-active_icon');
+	var icon = holder.attr('data-icon');
+	var active_icon = holder.attr('data-active_icon');
 	
 	tabs.find('span i').attr('class', icon);
 	var currentTab = jEle.find('.pagelayer-accordion-tabs.active');
@@ -335,8 +353,8 @@ function pagelayer_pl_collapse(jEle){
 	}
 		
 	var setup = tabs.attr('pagelayer-setup');
-	var icon = 'fa fa-'+holder.attr('data-icon');
-	var active_icon = 'fa fa-'+holder.attr('data-active_icon');
+	var icon = holder.attr('data-icon');
+	var active_icon = holder.attr('data-active_icon');
 	var activeTabs = jEle.find('.pagelayer-accordion_item.active');
 
 	tabs.find('span i').attr('class', icon);

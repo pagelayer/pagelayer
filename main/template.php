@@ -35,7 +35,7 @@ function pagelayer_template_setup_theme(){
 	//print_r($theme);
 	//echo $theme->get('Tags').' Get option';
 	
-	$theme_dir = get_template_directory();
+	$theme_dir = get_stylesheet_directory();
 	$conf = $theme_dir.'/pagelayer.conf';
 	//echo get_template_directory();
 	
@@ -106,25 +106,33 @@ function pagelayer_template_redirect(){
 		$pagelayer->template_footer = pagelayer_template_try_to_apply('footer');
 	}
 	
-	// If we do have a header but not the footer or we have the footer and no header,
-	// then we need to make sure to blank the other
-	if(!empty($pagelayer->template_header) || !empty($pagelayer->template_footer)){
-		
-		// If the post being shown to the user is not a Pagelayer post, then we need to enqueue forcefully
-		if(empty($pagelayer->cache['enqueue_frontend'])){
-			pagelayer_enqueue_frontend(true);
-		}
-		
-		add_action('get_header', 'pagelayer_get_header');
-		add_action('get_footer', 'pagelayer_get_footer');
-	}
-	
 }
 
 // Is our template being rendered
 function pagelayer_template_include($template){
 	
 	global $pagelayer;
+	
+	$pagelayer_enqueue_frontend = false;
+	
+	// If we do have a header but not the footer or we have the footer and no header,
+	// then we need to make sure to blank the other
+	if(!empty($pagelayer->template_header) || !empty($pagelayer->template_footer)){
+		$pagelayer_enqueue_frontend = true;
+		add_action('get_header', 'pagelayer_get_header');
+		add_action('get_footer', 'pagelayer_get_footer');
+	}
+	
+	// If we do have Popup templates, then append it in body
+	if(!empty($pagelayer->template_popup_ids) && empty($pagelayer->template_editor)){
+		$pagelayer_enqueue_frontend = true;
+		add_action('wp_footer', 'pagelayer_builder_popup_append');
+	}
+	
+	// If the post being shown to the user is not a Pagelayer post, then we need to enqueue forcefully
+	if(empty($pagelayer->cache['enqueue_frontend']) && $pagelayer_enqueue_frontend){
+		pagelayer_enqueue_frontend(true);
+	}
 	
 	// Is there any post templates OR are we editing a pagelayer-template ?
 	if(!empty($pagelayer->template_post) || !empty($pagelayer->template_editor)){
@@ -161,7 +169,7 @@ function pagelayer_template_render($template){
 	if(is_numeric($template)){
 		echo pagelayer_get_post_content($template);
 	}else{
-		echo do_shortcode(file_get_contents(get_template_directory().'/'.$template.'.pgl'));
+		echo do_shortcode(file_get_contents(get_stylesheet_directory().'/'.$template.'.pgl'));
 	}
 	
 }
@@ -192,7 +200,7 @@ function pagelayer_template_try_to_apply($type){
 }
 
 // Check conditions of template post ids / template files
-function pagelayer_template_check_conditons($ids = [], $file = false){
+function pagelayer_template_check_conditons($ids = [], $file = false, $return_all = false){
 	
 	global $pagelayer;
 	
@@ -288,6 +296,11 @@ function pagelayer_template_check_conditons($ids = [], $file = false){
 		if( $selected_template && $exclude_check ){
 			$selected_templs[$id] = $priority;
 		}
+	}
+	
+	// Return all ids with priority
+	if($return_all){
+		return $selected_templs;
 	}
 	
 	$gprior = 0; 
